@@ -19,6 +19,11 @@
 #define DUMPER_ERR_CHECK(error) \
     COMMON_IF_SUBMODULE_ERR_RETURN(error, getDumperErrorMessage, DUMPER_STATUS_OK, ARIFM_TREE_DUMPER_ERROR);
 
+#define ARIFM_OPS_ERR_CHECK(error) \
+    COMMON_IF_SUBMODULE_ERR_RETURN(error, getArifmOperationsErrorMessage, ARIFM_OPERATIONS_STATUS_OK, ARIFM_TREE_ARIFM_OPS_ERROR);
+
+
+
 const size_t MIN_MEM_BUFF_SIZE  = 8; // TODO: fix error with array resize
 const size_t OUTPUT_BUFFER_SIZE = 1 << 9;
 const size_t MAX_OBJ_NAME_LEN   = 30;
@@ -106,7 +111,7 @@ ArifmTreeErrors getNewNode(ArifmTree* tree, size_t* newNodeIndex) {
 ArifmTreeErrors isNodeAleftSonOfParent(const ArifmTree* tree, size_t parentInd, size_t vertInd, bool* is) {
     IF_ARG_NULL_RETURN(tree);
     IF_NOT_COND_RETURN(parentInd < tree->memBuffSize,
-                       ARIFM_TREE_INVALID_INPUT_STRING);
+                       ARIFM_TREE_INVALID_ARGUMENT);
 
     Node parent = tree->memBuff[parentInd];
     *is = vertInd == parent.left;
@@ -148,34 +153,6 @@ ArifmTreeErrors isArifmTreeNodeLeaf(const ArifmTree* tree, size_t currentNodeInd
 
 
 
-
-const char* getArifmTreeNodeType(const Node* node) {
-    assert(node != NULL);
-
-    switch (node->nodeType) {
-        case ARIFM_TREE_VAR_NODE:
-            return "variable";
-        case ARIFM_TREE_NUMBER_NODE:
-            return "number";
-        case ARIFM_TREE_FUNC_NODE:
-            return "function";
-    }
-}
-
-ArifmTreeErrors arifmTreeNodeToString(const Node* node, char** result) {
-    IF_ARG_NULL_RETURN(node);
-
-    const size_t BUFF_SIZE = 1 << 9;
-    *result = (char*)calloc(BUFF_SIZE, sizeof(char));
-    IF_NOT_COND_RETURN(*result != NULL, ARIFM_TREE_MEMORY_ALLOCATION_ERROR);
-    char* buffPtr = *result;
-
-    const char* nodeType = getArifmTreeNodeType(node);
-    buffPtr += snprintf(buffPtr, BUFF_SIZE - (buffPtr - *result),
-                        "node(%s, %zu)", nodeType, node->data);
-
-    return ARIFM_TREE_STATUS_OK;
-}
 
 static const char* trimBeginningOfLine(const char* line) {
     assert(line != NULL);
@@ -226,7 +203,6 @@ ArifmTreeErrors saveArifmTreeToFile(ArifmTree* tree, const char* fileName) {
 
 #include "readArifmTreeFromFile.cpp"
 
-
 static ArifmTreeErrors dumpArifmTreeInConsole(const ArifmTree* tree, size_t nodeIndex,
                                                               char** outputBuffer) {
     IF_ARG_NULL_RETURN(tree);
@@ -245,8 +221,9 @@ static ArifmTreeErrors dumpArifmTreeInConsole(const ArifmTree* tree, size_t node
     assert(nodeIndex < tree->memBuffSize);
     Node node = tree->memBuff[nodeIndex];
     IF_ERR_RETURN(dumpArifmTreeInConsole(tree, node.left, outputBuffer));
+
     char* nodeDataString = NULL;
-    IF_ERR_RETURN(arifmTreeNodeToString(&node, &nodeDataString));
+    ARIFM_OPS_ERR_CHECK(arifmTreeNodeToString(&node, &nodeDataString));
     LOG_DEBUG_VARS(node.memBuffIndex, nodeDataString);
     (*outputBuffer) += snprintf(*outputBuffer, OUTPUT_BUFFER_SIZE, " %s ", nodeDataString);
     FREE(nodeDataString);
@@ -274,7 +251,7 @@ ArifmTreeErrors dumpArifmTree(ArifmTree* tree) {
     for (size_t nodeInd = 0; nodeInd < tree->memBuffSize; ++nodeInd) {
         Node node = tree->memBuff[nodeInd];
         char* data = NULL;
-        IF_ERR_RETURN(arifmTreeNodeToString(&node, &data));
+        ARIFM_OPS_ERR_CHECK(arifmTreeNodeToString(&node, &data));
 
         size_t parent = node.parent;
         size_t left = node.left;

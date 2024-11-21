@@ -22,7 +22,7 @@ int main() {
     LOG_DEBUG("Hello world!");
 
     Dumper dumper = {};
-    dumperConstructor(&dumper, 10, "logs", ".png");
+    dumperConstructor(&dumper, 10, "logs", "png");
 
     ArifmTree tree = {};
     IF_MAIN_ARIFM_TREE_ERR_RETURN(constructArifmTree(&tree, &dumper));

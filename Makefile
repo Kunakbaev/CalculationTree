@@ -26,6 +26,9 @@ endif
 SRC 	   		   := 						\
 	$(ARIFM_TREE_PATH)/arifmTree.cpp		\
 	$(ARIFM_TREE_PATH)/arifmTreeErrors.cpp 	\
+	$(ARIFM_TREE_OPERATIONS_PATH)/arifmOperations.cpp\
+	$(ARIFM_TREE_OPERATIONS_PATH)/arifmOperationsErrors.cpp\
+	$(ARIFM_TREE_OPERATIONS_PATH)/functionsRealizations.cpp\
 	$(DUMPER_MODULE_PATH)/dumper.cpp		\
 	$(SOURCE_DIR)/main.cpp					\
 

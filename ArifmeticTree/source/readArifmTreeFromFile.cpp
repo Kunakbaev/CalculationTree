@@ -1,6 +1,7 @@
 #include <ctype.h>
 
 #include "../include/arifmTree.hpp"
+#include "../../ArifmOperations/include/arifmOperations.hpp"
 
 #define IF_ARG_NULL_RETURN(arg) \
     COMMON_IF_ARG_NULL_RETURN(arg, ARIFM_TREE_INVALID_ARGUMENT, getArifmTreeErrorMessage)
@@ -17,14 +18,17 @@
 #define DUMPER_ERR_CHECK(error) \
     COMMON_IF_SUBMODULE_ERR_RETURN(error, getDumperErrorMessage, DUMPER_STATUS_OK, ARIFM_TREE_DUMPER_ERROR);
 
-const size_t BUFF_SIZE = 1 << 10;
-const char*  BAD_SYMBOLS = " \t\n";
+#define ARIFM_OPS_ERR_CHECK(error) \
+    COMMON_IF_SUBMODULE_ERR_RETURN(error, getArifmOperationsErrorMessage, ARIFM_OPERATIONS_STATUS_OK, ARIFM_TREE_ARIFM_OPS_ERROR);
 
-bool isBadSymbol(char ch) {
+static const size_t BUFF_SIZE = 1 << 10;
+static const char*  BAD_SYMBOLS = " \t\n";
+
+static bool isBadSymbol(char ch) {
     return strchr(BAD_SYMBOLS, ch) != NULL;
 }
 
-ArifmTreeErrors removeGarbageFromInputString(char* buffer, char** result) {
+static ArifmTreeErrors removeGarbageFromInputString(char* buffer, char** result) {
     IF_ARG_NULL_RETURN(buffer);
     IF_ARG_NULL_RETURN(result);
 
@@ -43,20 +47,20 @@ ArifmTreeErrors removeGarbageFromInputString(char* buffer, char** result) {
     return ARIFM_TREE_STATUS_OK;
 }
 
-size_t getCharbalanceDx(char ch) {
+static size_t getCharbalanceDx(char ch) {
     if (ch == '(') return 1;
     if (ch == ')') return -1;
     return 0;
 }
 
-ArifmTreeErrors findCommandSubstrSegm(const char* line, size_t len, size_t* left, size_t* right) {
+static ArifmTreeErrors findCommandSubstrSegm(const char* line, size_t len, size_t* left, size_t* right) {
     IF_ARG_NULL_RETURN(line);
     IF_ARG_NULL_RETURN(left);
     IF_ARG_NULL_RETURN(right);
 
     // TODO: add check for correct input string
     *left = *right = -1;
-    size_t balance = 0;
+    size_t balance = 0; // file_to_tree
     //LOG_DEBUG_VARS(line, len);
     for (size_t i = 0; i < len; ++i) {
         char ch = line[i];
@@ -76,26 +80,7 @@ ArifmTreeErrors findCommandSubstrSegm(const char* line, size_t len, size_t* left
     return ARIFM_TREE_STATUS_OK;
 }
 
-static void initArifmTreeNodeWithString(Node* node, const char* line) {
-    assert(node != NULL);
-    assert(line != NULL);
-
-    size_t len = strlen(line);
-    bool allDigits = true; // TODO: what to do with double??
-    for (size_t i = 0; i < len; ++i)
-        allDigits &= isdigit(line[i]);
-
-    LOG_DEBUG_VARS(allDigits, len);
-    if (!allDigits) {
-        node->data = (size_t)line; // TODO: get command or variable index
-        node->nodeType = len == 1 && isalpha(line[0]) ? ARIFM_TREE_VAR_NODE : ARIFM_TREE_FUNC_NODE;
-    } else {
-        node->data = atoi(line); // TODO: get command or variable index
-        node->nodeType = ARIFM_TREE_NUMBER_NODE;
-    }
-}
-
-ArifmTreeErrors recursiveStringParseToArifmTree(ArifmTree* tree, size_t parentInd, bool isLeftSon,
+static ArifmTreeErrors recursiveStringParseToArifmTree(ArifmTree* tree, size_t parentInd, bool isLeftSon,
                                                 const char* line, size_t lineLen) {
     IF_ARG_NULL_RETURN(tree);
     IF_ARG_NULL_RETURN(line);
@@ -123,7 +108,7 @@ ArifmTreeErrors recursiveStringParseToArifmTree(ArifmTree* tree, size_t parentIn
     LOG_DEBUG_VARS(substr);
 
     LOG_DEBUG_VARS(left, right, substr);
-    initArifmTreeNodeWithString(node, substr);
+    ARIFM_OPS_ERR_CHECK(initArifmTreeNodeWithString(node, substr));
     LOG_DEBUG_VARS(node->data, node->nodeType);
 
     if (parentInd != 0) {
@@ -134,6 +119,7 @@ ArifmTreeErrors recursiveStringParseToArifmTree(ArifmTree* tree, size_t parentIn
         else
             parent->right = newNodeInd;
     }
+
 
     if (left != 0) {
         IF_ERR_RETURN(recursiveStringParseToArifmTree(tree, newNodeInd, true, line + 1, left));
@@ -159,7 +145,7 @@ ArifmTreeErrors readArifmTreeFromFile(ArifmTree* tree, const char* fileName) {
     IF_ERR_RETURN(removeGarbageFromInputString(inputBuffer, &goodString));
 
     size_t lineLen = strlen(goodString); // TODO: it is already has been counted in previous function
-    IF_ERR_RETURN(recursiveStringParseToArifmTree(tree, NULL, false, goodString, lineLen));
+    IF_ERR_RETURN(recursiveStringParseToArifmTree(tree, 0, false, goodString, lineLen));
 
     fclose(file);
     FREE(goodString);

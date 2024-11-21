@@ -1,0 +1,4 @@
+FUNCTION(+,         add2nums)
+FUNCTION(-,         sub2nums)
+FUNCTION(*,         mul2nums)
+FUNCTION(/,         div2nums)

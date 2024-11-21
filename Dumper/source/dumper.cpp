@@ -14,6 +14,8 @@
 #define ARIFM_TREE_ERR_CHECK(error) \
     COMMON_IF_SUBMODULE_ERR_RETURN(error, getArifmTreeErrorMessage, ARIFM_TREE_STATUS_OK, DUMPER_ERROR_ARIFM_TREE_ERROR);
 
+#define ARIFM_OPS_ERR_CHECK(error) \
+    COMMON_IF_SUBMODULE_ERR_RETURN(error, getArifmOperationsErrorMessage, ARIFM_OPERATIONS_STATUS_OK, DUMPER_ERROR_ARIFM_OPS_ERROR);
 
 const size_t FILE_NAME_BUFFER_SIZE      = 100;
 const size_t FULL_FILE_NAME_BUFFER_SIZE = 200;
@@ -132,7 +134,7 @@ static DumperErrors addNodeDumpStructToBuffer(Dumper* dumper,
     memset(tmpBuffer, 0, TMP_BUFFER_SIZE);
     if (node != NULL) {
         char* nodesDataStr = NULL;
-        ARIFM_TREE_ERR_CHECK(arifmTreeNodeToString(node, &nodesDataStr));
+        ARIFM_OPS_ERR_CHECK(arifmTreeNodeToString(node, &nodesDataStr));
         // LOG_INFO("----------------");
         LOG_DEBUG_VARS(nodesDataStr, node->data, node->memBuffIndex);
         snprintf(tmpBuffer, TMP_BUFFER_SIZE,
@@ -286,8 +288,8 @@ char* getLastImageFileName(const Dumper* dumper) {
 }
 
 DumperErrors dumperDumpArifmTree(Dumper* dumper, const ArifmTree* tree,
-                                  const NodesWithColor* coloringRule,
-                                  size_t coloringRuleLen) {
+                                 const NodesWithColor* coloringRule,
+                                 size_t coloringRuleLen) {
     IF_ARG_NULL_RETURN(dumper);
     IF_ARG_NULL_RETURN(tree);
 
