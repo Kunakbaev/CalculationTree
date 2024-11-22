@@ -1,0 +1,4 @@
+ARIFM_OPP_UNARY_FUNC(cos,       cos)
+ARIFM_OPP_UNARY_FUNC(sin,       sin)
+ARIFM_OPP_UNARY_FUNC(tan,       tan)
+ARIFM_OPP_UNARY_FUNC(ctan,      ctan)

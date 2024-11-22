@@ -142,8 +142,8 @@ static DumperErrors addNodeDumpStructToBuffer(Dumper* dumper,
             "<TABLE cellspacing=\"0\"> \n"
                 "<TR><TD colspan=\"2\">data:  %s</TD></TR>\n"
                 "<TR><TD colspan=\"2\">memIndex:  %zu</TD></TR>\n"
-                "<TR><TD>no:  %zu</TD>\n"
-                "<TD>yes: %zu</TD></TR>\n"
+                "<TR><TD>left:  %zu</TD>\n"
+                "<TD>right: %zu</TD></TR>\n"
                 "</TABLE> \n"
                 " >];\n", node->memBuffIndex, color, nodesDataStr, node->memBuffIndex, node->left, node->right);
         FREE(nodesDataStr);

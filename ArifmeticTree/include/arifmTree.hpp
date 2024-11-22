@@ -15,6 +15,7 @@ ArifmTreeErrors getNewNode(ArifmTree* tree, size_t* newNodeIndex);
 ArifmTreeErrors readArifmTreeFromFile(ArifmTree* tree, const char* fileName);
 ArifmTreeErrors saveArifmTreeToFile  (ArifmTree* tree, const char* fileName);
 
+ArifmTreeErrors validateArifmTree(const ArifmTree* tree);
 ArifmTreeErrors dumpArifmTree(ArifmTree* tree);
 ArifmTreeErrors openImageOfCurrentStateArifmTree(ArifmTree* tree);
 

@@ -4,7 +4,7 @@
 #include "../../include/errorsHandlerDefines.hpp"
 
 #define ERROR_UNPACK(errName, errCode, errMessage) \
-    errName = errCode,
+    ARIFM_TREE_##errName = errCode,
 
 enum ArifmTreeErrors {
     ARIFM_TREE_STATUS_OK             = 0,

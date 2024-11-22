@@ -1,0 +1,3 @@
+ARIFM_OPP_BINARY_FUNC(^,         pow)
+ARIFM_OPP_BINARY_FUNC(root,      root)
+ARIFM_OPP_BINARY_FUNC(log,       myLog)

@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <errno.h>
 
 #include "../include/arifmOperations.hpp"
 
@@ -15,14 +16,25 @@
     COMMON_IF_NOT_COND_RETURN(condition, error, getArifmOperationsErrorMessage)\
 
 
-#define FUNCTION(name, funcPtr) \
-    {#name, funcPtr},
+
+#define ARIFM_OPP_INFIX_FUNC(name, command) \
+    {#name, BINARY_FUNC, command##2numsFunc},
+
+#define ARIFM_OPP_UNARY_FUNC(name, command) \
+    {#name, UNARY_FUNC, command##Func},
+
+#define ARIFM_OPP_BINARY_FUNC(name, command) \
+    {#name, BINARY_FUNC, command##Func},
 
 Function functions[] = {
-    #include "../include/functionsPlainText.in"
+    #include "../include/functionsCodeGen/infixFunctionsPlainText.in"
+    #include "../include/functionsCodeGen/unaryFunctionsRealizations.in"
+    #include "../include/functionsCodeGen/binaryFunctionsRealizations.in"
 };
 
-#undef FUNCTION
+#undef ARIFM_OPP_INFIX_FUNC
+#undef ARIFM_OPP_UNARY_FUNC
+#undef ARIFM_OPP_BINARY_FUNC
 
 const size_t NUM_OF_FUNCS = sizeof(functions) / sizeof(*functions);
 const size_t NUM_OF_VARS  = 26;
@@ -47,6 +59,8 @@ const char* getArifmTreeNodeType(const Node* node) {
 static double getVarValue(size_t varIndex) {
     assert(varIndex < NUM_OF_VARS);
 
+    LOG_ERROR("-----------");
+    LOG_DEBUG_VARS(varIndex, varValuesArr[varIndex]);
     return varValuesArr[varIndex];
 }
 
@@ -68,7 +82,7 @@ ArifmOperationsErrors arifmTreeNodeDataToString(const Node* node, char** result)
             return ARIFM_OPERATIONS_STATUS_OK;
         case ARIFM_TREE_VAR_NODE:
             double varValue = getVarValue(node->data);
-            snprintf(*result, BUFF_SIZE, "%g", node->data);
+            snprintf(*result, BUFF_SIZE, "%c", 'a' + node->data);
             return ARIFM_OPERATIONS_STATUS_OK;
     }
 
@@ -95,7 +109,7 @@ ArifmOperationsErrors arifmTreeNodeToString(const Node* node, char** result) {
 }
 
 static size_t getVariableIndex(char ch) {
-    return ch - 'a' + 1; // is +1 necessary?
+    return ch - 'a';
 }
 
 // superSlow
@@ -111,6 +125,16 @@ static ArifmOperationsErrors getFunctionIndex(const char* funcName, size_t* resu
     }
 
     return ARIFM_OPERATIONS_FUNC_NOT_FOUND;
+}
+
+ArifmOperationsErrors getFuncByIndex(size_t funcIndex, Function* func) {
+    IF_ARG_NULL_RETURN(func);
+    IF_NOT_COND_RETURN(funcIndex < NUM_OF_FUNCS,
+                       ARIFM_OPERATIONS_INVALID_ARGUMENT);
+
+    *func = functions[funcIndex];
+
+    return ARIFM_OPERATIONS_STATUS_OK;
 }
 
 static bool isStringVar(const char* line) {
@@ -134,9 +158,13 @@ ArifmOperationsErrors initArifmTreeNodeWithString(Node* node, const char* line) 
         return ARIFM_OPERATIONS_STATUS_OK;
     }
 
-    // TODO: add error
+    // TODO: add appropriate error
     char* end_ptr = NULL;
+    errno = 0;
     node->doubleData = strtod(line, &end_ptr); // TODO: get command or variable index
+    LOG_DEBUG_VARS(line, end_ptr);
+    IF_NOT_COND_RETURN(errno == 0 && strlen(end_ptr) == 0,
+                       ARIFM_OPERATIONS_STR_TO_DOUBLE_ERROR); // ASK: how to fix this?
     node->nodeType = ARIFM_TREE_NUMBER_NODE;
 
     return ARIFM_OPERATIONS_STATUS_OK;

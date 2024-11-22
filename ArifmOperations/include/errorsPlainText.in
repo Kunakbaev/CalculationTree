@@ -3,3 +3,4 @@ ERROR_UNPACK(ARIFM_OPERATIONS_INVALID_ARGUMENT,        2, "invalid argument, pos
 ERROR_UNPACK(ARIFM_OPERATIONS_FILE_OPENING_ERROR,      3, "couldn't open file error.\n")
 ERROR_UNPACK(ARIFM_OPERATIONS_DUMPER_ERROR,            4, "error occured in dumper submodule.\n")
 ERROR_UNPACK(ARIFM_OPERATIONS_FUNC_NOT_FOUND,          5, "function with such name is not found.\n")
+ERROR_UNPACK(ARIFM_OPERATIONS_STR_TO_DOUBLE_ERROR,     6, "string to double conversion error.\n")

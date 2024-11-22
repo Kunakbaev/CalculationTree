@@ -1,0 +1,4 @@
+ARIFM_OPP_INFIX_FUNC(+,   add)
+ARIFM_OPP_INFIX_FUNC(-,   sub)
+ARIFM_OPP_INFIX_FUNC(*,   mul)
+ARIFM_OPP_INFIX_FUNC(/,   div)

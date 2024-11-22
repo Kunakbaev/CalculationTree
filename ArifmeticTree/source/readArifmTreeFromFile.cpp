@@ -47,35 +47,81 @@ static ArifmTreeErrors removeGarbageFromInputString(char* buffer, char** result)
     return ARIFM_TREE_STATUS_OK;
 }
 
-static size_t getCharbalanceDx(char ch) {
+static size_t getCharBalanceDx(char ch) {
     if (ch == '(') return 1;
     if (ch == ')') return -1;
     return 0;
 }
 
-static ArifmTreeErrors findCommandSubstrSegm(const char* line, size_t len, size_t* left, size_t* right) {
+struct Pair {
+    size_t first;
+    size_t second;
+};
+
+static ArifmTreeErrors findCommandSubstrSegm(const char* line, size_t len,
+                                             Pair* commandSegm, Pair* one, Pair* two) {
     IF_ARG_NULL_RETURN(line);
-    IF_ARG_NULL_RETURN(left);
-    IF_ARG_NULL_RETURN(right);
+    IF_ARG_NULL_RETURN(commandSegm);
+    IF_ARG_NULL_RETURN(one);
+    IF_ARG_NULL_RETURN(two);
 
     // TODO: add check for correct input string
-    *left = *right = -1;
-    size_t balance = 0; // file_to_tree
+    size_t commaInd = -1;
+    size_t balance  = 0; // file_to_tree
     //LOG_DEBUG_VARS(line, len);
+    *commandSegm = *one = *two = {1, 0};
     for (size_t i = 0; i < len; ++i) {
         char ch = line[i];
-        size_t dx = getCharbalanceDx(ch);
+        size_t dx = getCharBalanceDx(ch);
         balance += dx;
 
         //LOG_DEBUG_VARS(*left, *right, balance, dx, ch);
+        if (ch == ',' && balance == 1)
+            commaInd = i;
         if (balance == 0 && dx == 0) {
-            if (*left == -1)
-                *left = i;
-            *right = i;
+            if (commandSegm->first == 1 && commandSegm->second == 0)
+                commandSegm->first = i;
+            commandSegm->second = i;
         }
     }
 
+    if (commaInd != -1) {
+        *one = {commandSegm->second + 2, commaInd - 1};
+        *two = {commaInd + 1           , len - 2};
+        *one = {commandSegm->second + 1, commaInd - 1};
+        *two = {commaInd + 1           , len - 1};
+    } else {
+        *one = {1                      , commandSegm->first - 2};
+        *two = {commandSegm->second + 2, len - 2};
+    }
+
     // TODO: add check that there is exactly one substring with zero brackets balance
+    return ARIFM_TREE_STATUS_OK;
+}
+
+ArifmTreeErrors linkNewNodeToParent(ArifmTree* tree, size_t parentInd, bool isLeftSon,
+                                    size_t* newNodeInd, const char* substr) {
+    IF_ARG_NULL_RETURN(tree);
+    IF_ARG_NULL_RETURN(newNodeInd);
+    IF_ARG_NULL_RETURN(substr);
+
+    *newNodeInd = 0;
+    IF_ERR_RETURN(getNewNode(tree, newNodeInd));
+    if (tree->root == 0) // tree is empty
+        tree->root = *newNodeInd;
+    Node* node = &tree->memBuff[*newNodeInd];
+
+    if (parentInd != 0) {
+        node->parent = parentInd;
+        Node* parent = &tree->memBuff[parentInd];
+        if (isLeftSon)
+            parent->left  = *newNodeInd;
+        else
+            parent->right = *newNodeInd;
+    }
+
+    ARIFM_OPS_ERR_CHECK(initArifmTreeNodeWithString(node, substr));
+    LOG_DEBUG_VARS((node)->data, (node)->nodeType);
 
     return ARIFM_TREE_STATUS_OK;
 }
@@ -88,46 +134,41 @@ static ArifmTreeErrors recursiveStringParseToArifmTree(ArifmTree* tree, size_t p
         return ARIFM_TREE_STATUS_OK;
     // IF_NOT_COND_RETURN(lineLen != 0, ARIFM_TREE_INVALID_ARGUMENT); // maybe not error
 
-    size_t left  = 0;
-    size_t right = 0;
-    IF_ERR_RETURN(findCommandSubstrSegm(line, lineLen, &left, &right));
-    assert(left < lineLen);
-    assert(right < lineLen);
-
-    size_t newNodeInd = 0;
-    IF_ERR_RETURN(getNewNode(tree, &newNodeInd));
-    if (tree->root == 0) // tree is empty
-        tree->root = newNodeInd;
-    Node* node = &tree->memBuff[newNodeInd];
-    LOG_DEBUG_VARS(left, right, line, lineLen);
+    Pair commandSegm  = {};
+    Pair leftSonSegm  = {};
+    Pair rightSonSegm = {};
+    IF_ERR_RETURN(findCommandSubstrSegm(line, lineLen, &commandSegm,
+                                        &leftSonSegm, &rightSonSegm));
+    // TODO: add assert
+    // assert(left < lineLen);
+    // assert(right < lineLen);
 
     // TODO: redo this
-    char substr[100] = {};
-    strcpy(substr, line + left);
-    substr[right - left + 1] = '\0';
+    size_t substrLen = commandSegm.second - commandSegm.first + 1;
+    char* substr = (char*)calloc(substrLen + 1, sizeof(char));
+    IF_NOT_COND_RETURN(substr != NULL, ARIFM_TREE_MEMORY_ALLOCATION_ERROR);
+    strncpy(substr, line + commandSegm.first, substrLen);
     LOG_DEBUG_VARS(substr);
 
-    LOG_DEBUG_VARS(left, right, substr);
-    ARIFM_OPS_ERR_CHECK(initArifmTreeNodeWithString(node, substr));
-    LOG_DEBUG_VARS(node->data, node->nodeType);
+    size_t newNodeInd = 0;
+    IF_ERR_RETURN(linkNewNodeToParent(tree, parentInd, isLeftSon, &newNodeInd, substr));
+    LOG_DEBUG_VARS(commandSegm.first, commandSegm.second);
+    LOG_DEBUG_VARS(leftSonSegm.first, leftSonSegm.second);
+    LOG_DEBUG_VARS(rightSonSegm.first, rightSonSegm.second);
+    LOG_DEBUG_VARS(line, lineLen);
 
-    if (parentInd != 0) {
-        node->parent = parentInd;
-        Node* parent = &tree->memBuff[parentInd];
-        if (isLeftSon)
-            parent->left  = newNodeInd;
-        else
-            parent->right = newNodeInd;
+    if (leftSonSegm.first <= leftSonSegm.second && leftSonSegm.second < lineLen) {
+        IF_ERR_RETURN(recursiveStringParseToArifmTree(tree, newNodeInd, true,
+                                                      line + leftSonSegm.first,
+                                                      leftSonSegm.second - leftSonSegm.first + 1));
+    }
+    if (rightSonSegm.first <= rightSonSegm.second && rightSonSegm.second < lineLen) {
+        IF_ERR_RETURN(recursiveStringParseToArifmTree(tree, newNodeInd, false,
+                                                      line + rightSonSegm.first,
+                                                      rightSonSegm.second - rightSonSegm.first + 1));
     }
 
-
-    if (left != 0) {
-        IF_ERR_RETURN(recursiveStringParseToArifmTree(tree, newNodeInd, true, line + 1, left));
-    }
-    if (right != lineLen - 1) {
-        IF_ERR_RETURN(recursiveStringParseToArifmTree(tree, newNodeInd, false, line + right + 2, lineLen - right - 3));
-    }
-
+    FREE(substr);
     return ARIFM_TREE_STATUS_OK;
 }
 

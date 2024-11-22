@@ -2,7 +2,7 @@
 
 const char* getArifmTreeErrorMessage(ArifmTreeErrors error) {
     #define ERROR_UNPACK(errName, errCode, errMessage)          \
-        case errName:                                           \
+        case ARIFM_TREE_##errName:                                           \
             return "Arifm tree error: " errMessage ".\n";    \
 
     switch (error) {

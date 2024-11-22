@@ -6,13 +6,9 @@
 #include "../../ArifmeticTree/include/arifmTreeNodeStruct.hpp"
 #include "functionsRealizations.hpp"
 
-struct Function {
-    const char*             name;
-    functionsRealizationPtr func;
-};
-
 ArifmOperationsErrors initArifmTreeNodeWithString(Node* node, const char* line);
 const char* getArifmTreeNodeType(const Node* node);
+ArifmOperationsErrors getFuncByIndex(size_t funcIndex, Function* func);
 ArifmOperationsErrors arifmTreeNodeDataToString(const Node* node, char** result);
 ArifmOperationsErrors arifmTreeNodeToString(const Node* node, char** result);
 

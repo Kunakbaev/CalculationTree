@@ -4,9 +4,9 @@
 #include <cstddef>
 
 enum TreeNodeType {
-    ARIFM_TREE_NUMBER_NODE,
-    ARIFM_TREE_VAR_NODE=10,
-    ARIFM_TREE_FUNC_NODE,
+    ARIFM_TREE_NUMBER_NODE = 0,
+    ARIFM_TREE_VAR_NODE    = 1,
+    ARIFM_TREE_FUNC_NODE   = 2,
 }; // ASK: maybe move to arifm operations submodule?
 
 struct Node {
