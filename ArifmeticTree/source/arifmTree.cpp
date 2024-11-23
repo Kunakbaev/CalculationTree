@@ -159,55 +159,8 @@ ArifmTreeErrors isArifmTreeNodeLeaf(const ArifmTree* tree, size_t currentNodeInd
 
 
 
-
-static const char* trimBeginningOfLine(const char* line) {
-    assert(line != NULL);
-    const char* ptr = line;
-    // TODO: add delims const string
-    while (*ptr == '\t' || *ptr == ' ')
-        ++ptr;
-
-    return ptr;
-}
-
-static ArifmTreeErrors recursiveSaveOfTreeInFile(ArifmTree* tree, size_t nodeInd, size_t depth, FILE* file) {
-    if (!nodeInd)
-        return ARIFM_TREE_STATUS_OK;
-
-    IF_ARG_NULL_RETURN(tree);
-    IF_ARG_NULL_RETURN(file);
-
-    const size_t BUFF_SIZE = 100;
-    char tabs[BUFF_SIZE] = {};
-    for (size_t i = 0; i < depth; ++i)
-        tabs[i] = '\t';
-
-    assert(nodeInd < tree->memBuffSize);
-    Node node = tree->memBuff[nodeInd];
-    fprintf(file, "%s{\n", tabs);
-    fprintf(file, "%s\t%s\n", tabs, node.data);
-    LOG_DEBUG_VARS(tabs, node.data, nodeInd);
-    IF_ERR_RETURN(recursiveSaveOfTreeInFile(tree, node.left, depth + 1, file));
-    IF_ERR_RETURN(recursiveSaveOfTreeInFile(tree, node.right, depth + 1, file));
-    fprintf(file, "%s}\n", tabs);
-
-    return ARIFM_TREE_STATUS_OK;
-}
-
-ArifmTreeErrors saveArifmTreeToFile(ArifmTree* tree, const char* fileName) {
-    IF_ARG_NULL_RETURN(tree);
-    IF_ARG_NULL_RETURN(fileName);
-
-    FILE* file = fopen(fileName, "w");
-    IF_NOT_COND_RETURN(file != NULL, ARIFM_TREE_FILE_OPENING_ERROR);
-
-    IF_ERR_RETURN(recursiveSaveOfTreeInFile(tree, tree->root, 0, file));
-    fclose(file);
-
-    return ARIFM_TREE_STATUS_OK;
-}
-
 #include "readArifmTreeFromFile.cpp"
+#include "saveArifmTreeToFile.cpp"
 
 static ArifmTreeErrors dumpArifmTreeInConsole(const ArifmTree* tree, size_t nodeIndex,
                                                               char** outputBuffer) {

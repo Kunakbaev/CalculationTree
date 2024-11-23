@@ -88,8 +88,6 @@ static ArifmTreeErrors findCommandSubstrSegm(const char* line, size_t len,
     if (commaInd != -1) {
         *one = {commandSegm->second + 2, commaInd - 1};
         *two = {commaInd + 1           , len - 2};
-        *one = {commandSegm->second + 1, commaInd - 1};
-        *two = {commaInd + 1           , len - 1};
     } else {
         *one = {1                      , commandSegm->first - 2};
         *two = {commandSegm->second + 2, len - 2};

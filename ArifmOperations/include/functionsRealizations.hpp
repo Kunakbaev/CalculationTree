@@ -3,8 +3,10 @@
 
 #include <cstddef>
 #include <cassert>
+#include "arifmOperationsErrors.hpp"
 
-typedef double (*functionRealizationPtr)(double a, double b);
+typedef double                (*functionRealizationPtr )(double a, double b);
+typedef ArifmOperationsErrors (*functionToLatexStringPtr)(char*  a, char*  b, char** result);
 
 enum Function_type {
     UNARY_FUNC  = 0,
@@ -12,9 +14,10 @@ enum Function_type {
 };
 
 struct Function {
-    const char*             name;
-    Function_type           type;
-    functionRealizationPtr  func;
+    const char*              name;
+    Function_type            type;
+    functionRealizationPtr   calculationFunc;
+    functionToLatexStringPtr latexToStringFunc;
 };
 
 #define ARIFM_OPP_INFIX_FUNC(operand, name)         \

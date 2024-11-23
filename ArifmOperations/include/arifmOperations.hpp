@@ -11,5 +11,7 @@ const char* getArifmTreeNodeType(const Node* node);
 ArifmOperationsErrors getFuncByIndex(size_t funcIndex, Function* func);
 ArifmOperationsErrors arifmTreeNodeDataToString(const Node* node, char** result);
 ArifmOperationsErrors arifmTreeNodeToString(const Node* node, char** result);
+ArifmOperationsErrors getNodeLatexString(const Node* node, char* leftString, char* rightString,
+                                              char** result);
 
 #endif

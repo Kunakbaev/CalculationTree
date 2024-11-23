@@ -2,6 +2,7 @@
 #include <errno.h>
 
 #include "../include/arifmOperations.hpp"
+#include "../include/funcsToLatexString.hpp"
 
 #define IF_ARG_NULL_RETURN(arg) \
     COMMON_IF_ARG_NULL_RETURN(arg, ARIFM_OPERATIONS_INVALID_ARGUMENT, getArifmOperationsErrorMessage)
@@ -17,14 +18,9 @@
 
 
 
-#define ARIFM_OPP_INFIX_FUNC(name, command) \
-    {#name, BINARY_FUNC, command##2numsFunc},
-
-#define ARIFM_OPP_UNARY_FUNC(name, command) \
-    {#name, UNARY_FUNC, command##Func},
-
-#define ARIFM_OPP_BINARY_FUNC(name, command) \
-    {#name, BINARY_FUNC, command##Func},
+#define ARIFM_OPP_INFIX_FUNC( name, command) {#name, BINARY_FUNC, command##2numsFunc, command##FuncToLatex},
+#define ARIFM_OPP_UNARY_FUNC( name, command) {#name, UNARY_FUNC,  command##Func,      command##FuncToLatex},
+#define ARIFM_OPP_BINARY_FUNC(name, command) {#name, BINARY_FUNC, command##Func,      command##FuncToLatex},
 
 Function functions[] = {
     #include "../include/functionsCodeGen/infixFunctionsPlainText.in"
@@ -170,4 +166,32 @@ ArifmOperationsErrors initArifmTreeNodeWithString(Node* node, const char* line) 
     return ARIFM_OPERATIONS_STATUS_OK;
 }
 
+ArifmOperationsErrors getNodeLatexString(const Node* node, char* leftString, char* rightString,
+                                              char** result) {
+    IF_ARG_NULL_RETURN(node);
+    IF_ARG_NULL_RETURN(result);
+
+    Function func = {};
+    switch (node->nodeType) {
+        case ARIFM_TREE_NUMBER_NODE:
+        case ARIFM_TREE_VAR_NODE:
+            IF_ERR_RETURN(arifmTreeNodeDataToString(node, result));
+            LOG_ERROR("---------------");
+            LOG_DEBUG_VARS(*result);
+            break;
+        case ARIFM_TREE_FUNC_NODE:
+            IF_ERR_RETURN(getFuncByIndex(node->data, &func));
+            IF_ERR_RETURN((func.latexToStringFunc)(leftString, rightString, result));
+            LOG_ERROR("-----------------");
+            LOG_DEBUG_VARS(*result, "function");
+            break;
+        default:
+            return ARIFM_OPERATIONS_INVALID_ARGUMENT; // TODO: add error
+    }
+
+    // FREE(leftString);
+    // FREE(rightString);
+
+    return ARIFM_OPERATIONS_STATUS_OK;
+}
 
