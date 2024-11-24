@@ -25,18 +25,18 @@ static double ctan(double x) {
 }
 
 // ASK: what to do with division? no error check :(
-#define ARIFM_OPP_INFIX_FUNC(operand, name)         \
-    double name##2numsFunc(double a, double b) {    \
+#define ARIFM_OPP_INFIX_FUNC(operand, command, _, __)   \
+    double command##Func(double a, double b) {      \
         return a operand b;                         \
     }                                               \
 
-// ASK: same issue, no error check?
-#define ARIFM_OPP_UNARY_FUNC(_, command)           \
+// ASK: same issue, no error check
+#define ARIFM_OPP_UNARY_FUNC(_, command, __, ___)           \
     double command##Func(double a, double b) {      \
         return command(a);                     \
     }                                               \
 
-#define ARIFM_OPP_BINARY_FUNC(_, command)           \
+#define ARIFM_OPP_BINARY_FUNC(_, command, __, ___)           \
     double command##Func(double a, double b) {      \
         return command(a, b);                     \
     }                                               \

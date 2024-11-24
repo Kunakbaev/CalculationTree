@@ -42,6 +42,8 @@ ArifmTreeErrors constructArifmTree(ArifmTree* tree, Dumper* dumper) {
     IF_ARG_NULL_RETURN(tree);
     IF_ARG_NULL_RETURN(dumper);
 
+    ARIFM_OPS_ERR_CHECK(validateArifmOperationsArrays());
+
     tree->root              = 0;
     tree->memBuff           = (Node*)calloc(MIN_MEM_BUFF_SIZE, sizeof(Node));
     IF_NOT_COND_RETURN(tree->memBuff != NULL,

@@ -18,24 +18,56 @@
 
 
 
-#define ARIFM_OPP_INFIX_FUNC( name, command) {#name, BINARY_FUNC, command##2numsFunc, command##FuncToLatex},
-#define ARIFM_OPP_UNARY_FUNC( name, command) {#name, UNARY_FUNC,  command##Func,      command##FuncToLatex},
-#define ARIFM_OPP_BINARY_FUNC(name, command) {#name, BINARY_FUNC, command##Func,      command##FuncToLatex},
+#define ARIFM_OPP_INFIX_FUNC( name, command, enumName, _) {BINARY_FUNC, ELEM_FUNC_##enumName, command##Func, command##FuncToLatex},
+#define ARIFM_OPP_UNARY_FUNC( name, command, enumName, _) {UNARY_FUNC,  ELEM_FUNC_##enumName, command##Func, command##FuncToLatex},
+#define ARIFM_OPP_BINARY_FUNC ARIFM_OPP_INFIX_FUNC
 
 Function functions[] = {
+    #include "../include/functionsCodeGen/binaryFunctionsRealizations.in"
     #include "../include/functionsCodeGen/infixFunctionsPlainText.in"
     #include "../include/functionsCodeGen/unaryFunctionsRealizations.in"
-    #include "../include/functionsCodeGen/binaryFunctionsRealizations.in"
 };
 
 #undef ARIFM_OPP_INFIX_FUNC
 #undef ARIFM_OPP_UNARY_FUNC
 #undef ARIFM_OPP_BINARY_FUNC
 
+#define ARIFM_OPP_GENERAL_FUNC( name, _, __, ___) #name,
+
+const char* const functionNames[] = {
+    #include "../include/functionsCodeGen/allFuncs.hpp"
+};
+
+#undef ARIFM_OPP_GENERAL_FUNC
+
 const size_t NUM_OF_FUNCS = sizeof(functions) / sizeof(*functions);
+static_assert((sizeof(functionNames) / sizeof(*functionNames)) == NUM_OF_FUNCS);
 const size_t NUM_OF_VARS  = 26;
 
 double varValuesArr[NUM_OF_VARS] = {};
+
+ArifmOperationsErrors validateArifmOperationsArrays() {
+    size_t funcNamesArrSize = sizeof(functionNames) / sizeof(*functionNames);
+    IF_NOT_COND_RETURN(funcNamesArrSize == NUM_OF_FUNCS,
+                        ARIFM_OPERATIONS_INVALID_FUNC_ARRAYS);
+    for (size_t funcInd = 0; funcInd < NUM_OF_FUNCS; ++funcInd) {
+        Function    func     = functions[funcInd];
+        //const char* funcName = functionNames[funcInd];
+        LOG_DEBUG_VARS(func.name, funcInd);
+        IF_NOT_COND_RETURN(func.name == funcInd          , ARIFM_OPERATIONS_INVALID_FUNC_ARRAYS);
+        IF_NOT_COND_RETURN(func.calculationFunc   != NULL, ARIFM_OPERATIONS_INVALID_FUNC_ARRAYS);
+        IF_NOT_COND_RETURN(func.latexToStringFunc != NULL, ARIFM_OPERATIONS_INVALID_FUNC_ARRAYS);
+        IF_NOT_COND_RETURN(func.type == UNARY_FUNC || func.type == BINARY_FUNC,
+                           ARIFM_OPERATIONS_INVALID_FUNC_ARRAYS);
+    }
+
+    return ARIFM_OPERATIONS_STATUS_OK;
+}
+
+const char* getFuncName(FunctionsNames funcName) {
+    assert(funcName < NUM_OF_FUNCS);
+    return functionNames[funcName];
+}
 
 const char* getArifmTreeNodeType(const Node* node) {
     assert(node != NULL);
@@ -65,6 +97,21 @@ static const char* getFuncType(const Function* function) {
     }
 }
 
+static ArifmOperationsErrors getFunctionByName(const char* name, Function* func) {
+    IF_ARG_NULL_RETURN(name);
+    IF_ARG_NULL_RETURN(func);
+
+    for (size_t funcInd = 0; funcInd < NUM_OF_FUNCS; ++funcInd) {
+        LOG_DEBUG_VARS(name, functionNames[funcInd]);
+        if (strcmp(name, functionNames[funcInd]) == 0) {
+            *func = functions[funcInd];
+            return ARIFM_OPERATIONS_STATUS_OK;
+        }
+    }
+
+    return ARIFM_OPERATIONS_FUNC_NOT_FOUND;
+}
+
 static double getVarValue(size_t varIndex) {
     assert(varIndex < NUM_OF_VARS);
 
@@ -81,13 +128,15 @@ ArifmOperationsErrors arifmTreeNodeDataToString(const Node* node, char** result)
     *result = (char*)calloc(BUFF_SIZE, sizeof(char));
     IF_NOT_COND_RETURN(*result != NULL, ARIFM_OPERATIONS_MEMORY_ALLOCATION_ERROR);
 
-    Function func = {};
+    Function func        = {};
+    const char* funcName = NULL;
     switch (node->nodeType) {
         case ARIFM_TREE_FUNC_NODE:
             assert(node->data < NUM_OF_FUNCS);
-            func = functions[node->data];
+            func     = functions[node->data];
+            funcName = getFuncName(func.name);
             snprintf(*result, BUFF_SIZE, "%s, %s",
-                     getFuncType(&func), func.name);
+                     getFuncType(&func), funcName);
             return ARIFM_OPERATIONS_STATUS_OK;
         case ARIFM_TREE_NUMBER_NODE:
             snprintf(*result, BUFF_SIZE, "%g", node->doubleData);
@@ -124,21 +173,6 @@ static size_t getVariableIndex(char ch) {
     return ch - 'a';
 }
 
-// superSlow
-static ArifmOperationsErrors getFunctionIndex(const char* funcName, size_t* result) {
-    IF_ARG_NULL_RETURN(funcName);
-    IF_ARG_NULL_RETURN(result);
-
-    for (size_t funcInd = 0; funcInd < NUM_OF_FUNCS; ++funcInd) {
-        if (strcmp(functions[funcInd].name, funcName) == 0) {
-            *result = funcInd;
-            return ARIFM_OPERATIONS_STATUS_OK;
-        }
-    }
-
-    return ARIFM_OPERATIONS_FUNC_NOT_FOUND;
-}
-
 ArifmOperationsErrors getFuncByIndex(size_t funcIndex, Function* func) {
     IF_ARG_NULL_RETURN(func);
     IF_NOT_COND_RETURN(funcIndex < NUM_OF_FUNCS,
@@ -164,9 +198,11 @@ ArifmOperationsErrors initArifmTreeNodeWithString(Node* node, const char* line) 
         return ARIFM_OPERATIONS_STATUS_OK;
     }
 
-    ArifmOperationsErrors err = getFunctionIndex(line, &node->data);
+    Function func = {};
+    ArifmOperationsErrors err = getFunctionByName(line, &func);
     if (err == ARIFM_OPERATIONS_STATUS_OK) {
         node->nodeType = ARIFM_TREE_FUNC_NODE;
+        node->data     = func.name;
         return ARIFM_OPERATIONS_STATUS_OK;
     }
 
@@ -180,6 +216,29 @@ ArifmOperationsErrors initArifmTreeNodeWithString(Node* node, const char* line) 
     node->nodeType = ARIFM_TREE_NUMBER_NODE;
 
     return ARIFM_OPERATIONS_STATUS_OK;
+}
+
+bool isNeedForBrackets(const Node* parent, const Node* cur, bool isLeftSon) {
+    IF_ARG_NULL_RETURN(parent);
+    IF_ARG_NULL_RETURN(cur);
+
+    if (parent->nodeType != ARIFM_TREE_FUNC_NODE ||
+        cur->nodeType    != ARIFM_TREE_FUNC_NODE)
+            return false;
+
+    Function parentFunc = {};
+    Function curFunc    = {};
+    IF_ERR_RETURN(getFuncByIndex(parent->data, &parentFunc));
+    IF_ERR_RETURN(getFuncByIndex(cur->data,    &curFunc));
+
+    FunctionsNames parName = parentFunc.name;
+    FunctionsNames curName = curFunc.name;
+    bool isHighPrior = parName == ELEM_FUNC_MUL || parName == ELEM_FUNC_DIV ||
+                       parName == ELEM_FUNC_POW;
+    bool isLowPrior  = curName == ELEM_FUNC_ADD || curName == ELEM_FUNC_SUB;
+    return
+        (isHighPrior && isLowPrior) ||
+        (parName == ELEM_FUNC_POW && isLeftSon);
 }
 
 ArifmOperationsErrors getNodeLatexString(const Node* node, char* leftString, char* rightString,

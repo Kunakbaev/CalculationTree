@@ -51,27 +51,15 @@ static ArifmTreeErrors recursiveTreeSaveToFile(ArifmTree* tree, size_t nodeInd, 
     if (parentInd != 0) {
         assert(parentInd < tree->memBuffSize);
         Node parent = tree->memBuff[parentInd];
-        if (parent.nodeType == ARIFM_TREE_FUNC_NODE &&
-            node.nodeType   == ARIFM_TREE_FUNC_NODE) {
-            Function func = {};
-            Function curFunc = {};
-            ARIFM_OPS_ERR_CHECK(getFuncByIndex(parent.data, &func));
-            ARIFM_OPS_ERR_CHECK(getFuncByIndex(node.data,   &curFunc));
+        bool isLeftSon = nodeInd == parent.left;
+        if (isNeedForBrackets(&parent, &node, isLeftSon)) {
+            char* tmp = (char*)calloc(strlen(*buffer) + 2 + 1, sizeof(char));
+            IF_NOT_COND_RETURN(tmp != NULL, ARIFM_TREE_MEMORY_ALLOCATION_ERROR);
 
-            LOG_DEBUG_VARS(func.name, curFunc.name);
-            // TODO:
-            bool isHighPrior = strcmp(func.name, "*") == 0 || strcmp(func.name, "/") == 0 ||
-                               strcmp(func.name, "^") == 0;
-            bool isLowPrior  = strcmp(curFunc.name, "+") == 0 || strcmp(curFunc.name, "-") == 0;
-            if (isHighPrior && isLowPrior) {
-                char* tmp = (char*)calloc(strlen(*buffer) + 2 + 1, sizeof(char));
-                IF_NOT_COND_RETURN(tmp != NULL, ARIFM_TREE_MEMORY_ALLOCATION_ERROR);
-
-                sprintf(tmp, "(%s)", *buffer);
-                FREE(*buffer);
-                *buffer = tmp;
-                LOG_DEBUG_VARS(*buffer);
-            }
+            sprintf(tmp, "(%s)", *buffer);
+            FREE(*buffer);
+            *buffer = tmp;
+            LOG_DEBUG_VARS(*buffer);
         }
     }
 

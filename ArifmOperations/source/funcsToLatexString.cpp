@@ -41,25 +41,18 @@ static ArifmOperationsErrors funcToLatexCommonImplementation(char* left, char* r
     return ARIFM_OPERATIONS_STATUS_OK;
 }
 
-#define FUNC_TO_LATEX(name, funcFormat) \
-    ArifmOperationsErrors name##FuncToLatex(char* left, char* right, char** result) {\
-        funcToLatexCommonImplementation(left, right, funcFormat, result);\
-        return ARIFM_OPERATIONS_STATUS_OK;\
+#define ARIFM_OPP_GENERAL_FUNC(_, name, __, funcFormat)                                     \
+    ArifmOperationsErrors name##FuncToLatex(char* left, char* right, char** result) {       \
+        funcToLatexCommonImplementation(left, right, funcFormat, result);                   \
+        return ARIFM_OPERATIONS_STATUS_OK;                                                  \
     }
+
+#include "../include/functionsCodeGen/allFuncs.hpp"
+
+#undef ARIFM_OPS_GENERAL_FUNC
 
 // TODO: add this to code gen
 // for unary functions left string must be empty
-FUNC_TO_LATEX(cos,   "cos(%s%s)")
-FUNC_TO_LATEX(sin,   "sin(%s%s)")
-FUNC_TO_LATEX(tan,   "tan(%s%s)")
-FUNC_TO_LATEX(ctan,  "ctan(%s%s)")
-FUNC_TO_LATEX(myLog, "log_{%s}({%s})")
-FUNC_TO_LATEX(pow,   "{%s}^{%s}")
-FUNC_TO_LATEX(root,  "\\sqrt[%s]{%s}")
-FUNC_TO_LATEX(add,   "{%s}+{%s}")
-FUNC_TO_LATEX(sub,   "{%s}-{%s}")
-FUNC_TO_LATEX(mul,   "{%s}\\cdot{%s}")
-FUNC_TO_LATEX(div,   "\\frac{%s}{%s}")
 
 
 

@@ -1,4 +1,4 @@
-ARIFM_OPP_INFIX_FUNC(+,   add)
-ARIFM_OPP_INFIX_FUNC(-,   sub)
-ARIFM_OPP_INFIX_FUNC(*,   mul)
-ARIFM_OPP_INFIX_FUNC(/,   div)
+ARIFM_OPP_INFIX_FUNC(+,   add,   ADD,   "{%s}+{%s}")
+ARIFM_OPP_INFIX_FUNC(-,   sub,   SUB,   "{%s}-{%s}")
+ARIFM_OPP_INFIX_FUNC(*,   mul,   MUL,   "{%s}\\cdot{%s}")
+ARIFM_OPP_INFIX_FUNC(/,   div,   DIV,   "\\frac{%s}{%s}")

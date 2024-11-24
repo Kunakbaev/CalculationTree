@@ -13,30 +13,25 @@ enum Function_type {
     BINARY_FUNC = 1,
 };
 
+#define ARIFM_OPP_GENERAL_FUNC(operand, name, _, __) \
+    double name##Func(double a, double b);
+
+#include "../include/functionsCodeGen/allFuncs.hpp"
+
+// ASK: should be careful with nums that are assigned to this enums? On some compilers it can be random and not just 0, 1, 2, 3, ...?
+#define ARIFM_OPP_GENERAL_FUNC(_, __, enumName, ___) ELEM_FUNC_##enumName,
+
+enum FunctionsNames {
+    #include "../include/functionsCodeGen/allFuncs.hpp"
+};
+
+#undef ARIFM_OPP_GENERAL_FUNC
+
 struct Function {
-    const char*              name;
     Function_type            type;
+    FunctionsNames           name;
     functionRealizationPtr   calculationFunc;
     functionToLatexStringPtr latexToStringFunc;
 };
-
-#define ARIFM_OPP_INFIX_FUNC(operand, name)         \
-    double name##2numsFunc(double a, double b);     \
-
-// ASK: same issue, no error check?
-#define ARIFM_OPP_BINARY_FUNC(_, command)           \
-    double command##Func(double a, double b);       \
-
-// ASK: same issue, no error check?
-#define ARIFM_OPP_UNARY_FUNC(_, command) \
-    ARIFM_OPP_BINARY_FUNC(_, command)
-
-#include "../include/functionsCodeGen/infixFunctionsPlainText.in"
-#include "../include/functionsCodeGen/unaryFunctionsRealizations.in"
-#include "../include/functionsCodeGen/binaryFunctionsRealizations.in"
-
-#undef ARIFM_OPP_INFIX_FUNC
-#undef ARIFM_OPP_UNARY_FUNC
-#undef ARIFM_OPP_BINARY_FUNC
 
 #endif

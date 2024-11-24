@@ -4,10 +4,10 @@
 #include "../../include/errorsHandlerDefines.hpp"
 
 #define ERROR_UNPACK(errName, errCode, errMessage) \
-    errName = errCode,
+    ARIFM_OPERATIONS_##errName = errCode,
 
 enum ArifmOperationsErrors {
-    ARIFM_OPERATIONS_STATUS_OK             = 0,
+    ARIFM_OPERATIONS_STATUS_OK = 0,
     #include "errorsPlainText.in"
 };
 

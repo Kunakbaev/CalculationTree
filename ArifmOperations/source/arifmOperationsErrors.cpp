@@ -1,8 +1,8 @@
 #include "../include/arifmOperationsErrors.hpp"
 
 const char* getArifmOperationsErrorMessage(ArifmOperationsErrors error) {
-    #define ERROR_UNPACK(errName, errCode, errMessage)          \
-        case errName:                                           \
+    #define ERROR_UNPACK(errName, errCode, errMessage)             \
+        case ARIFM_OPERATIONS_##errName:                           \
             return "Arifm operations error: " errMessage ".\n";    \
 
     switch (error) {
