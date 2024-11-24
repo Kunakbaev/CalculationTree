@@ -140,7 +140,7 @@ static DumperErrors addNodeDumpStructToBuffer(Dumper* dumper,
         snprintf(tmpBuffer, TMP_BUFFER_SIZE,
         "iamnode_id_%zu [shape=none, margin=0, fontcolor=white, color=%s, label=< \n"
             "<TABLE cellspacing=\"0\"> \n"
-                "<TR><TD colspan=\"2\">data:  %s</TD></TR>\n"
+                "<TR><TD colspan=\"2\">%s</TD></TR>\n"
                 "<TR><TD colspan=\"2\">memIndex:  %zu</TD></TR>\n"
                 "<TR><TD>left:  %zu</TD>\n"
                 "<TD>right: %zu</TD></TR>\n"

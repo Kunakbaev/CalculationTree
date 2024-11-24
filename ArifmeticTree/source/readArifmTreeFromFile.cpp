@@ -67,15 +67,13 @@ static ArifmTreeErrors findCommandSubstrSegm(const char* line, size_t len,
 
     // TODO: add check for correct input string
     size_t commaInd = -1;
-    size_t balance  = 0; // file_to_tree
-    //LOG_DEBUG_VARS(line, len);
+    size_t balance  = 0;
     *commandSegm = *one = *two = {1, 0};
     for (size_t i = 0; i < len; ++i) {
         char ch = line[i];
         size_t dx = getCharBalanceDx(ch);
         balance += dx;
 
-        //LOG_DEBUG_VARS(*left, *right, balance, dx, ch);
         if (ch == ',' && balance == 1)
             commaInd = i;
         if (balance == 0 && dx == 0) {
@@ -154,6 +152,7 @@ static ArifmTreeErrors recursiveStringParseToArifmTree(ArifmTree* tree, size_t p
     LOG_DEBUG_VARS(leftSonSegm.first, leftSonSegm.second);
     LOG_DEBUG_VARS(rightSonSegm.first, rightSonSegm.second);
     LOG_DEBUG_VARS(line, lineLen);
+    IF_ERR_RETURN(dumpArifmTree(tree));
 
     if (leftSonSegm.first <= leftSonSegm.second && leftSonSegm.second < lineLen) {
         IF_ERR_RETURN(recursiveStringParseToArifmTree(tree, newNodeInd, true,

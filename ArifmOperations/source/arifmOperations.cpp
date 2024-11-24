@@ -52,6 +52,19 @@ const char* getArifmTreeNodeType(const Node* node) {
     }
 }
 
+static const char* getFuncType(const Function* function) {
+    assert(function != NULL);
+
+    switch (function->type) {
+        case BINARY_FUNC:
+            return "binary";
+        case UNARY_FUNC:
+            return "unary";
+        default:
+            return "unknown";
+    }
+}
+
 static double getVarValue(size_t varIndex) {
     assert(varIndex < NUM_OF_VARS);
 
@@ -68,10 +81,13 @@ ArifmOperationsErrors arifmTreeNodeDataToString(const Node* node, char** result)
     *result = (char*)calloc(BUFF_SIZE, sizeof(char));
     IF_NOT_COND_RETURN(*result != NULL, ARIFM_OPERATIONS_MEMORY_ALLOCATION_ERROR);
 
+    Function func = {};
     switch (node->nodeType) {
         case ARIFM_TREE_FUNC_NODE:
             assert(node->data < NUM_OF_FUNCS);
-            strcpy(*result, functions[node->data].name);
+            func = functions[node->data];
+            snprintf(*result, BUFF_SIZE, "%s, %s",
+                     getFuncType(&func), func.name);
             return ARIFM_OPERATIONS_STATUS_OK;
         case ARIFM_TREE_NUMBER_NODE:
             snprintf(*result, BUFF_SIZE, "%g", node->doubleData);
@@ -176,21 +192,14 @@ ArifmOperationsErrors getNodeLatexString(const Node* node, char* leftString, cha
         case ARIFM_TREE_NUMBER_NODE:
         case ARIFM_TREE_VAR_NODE:
             IF_ERR_RETURN(arifmTreeNodeDataToString(node, result));
-            LOG_ERROR("---------------");
-            LOG_DEBUG_VARS(*result);
             break;
         case ARIFM_TREE_FUNC_NODE:
             IF_ERR_RETURN(getFuncByIndex(node->data, &func));
             IF_ERR_RETURN((func.latexToStringFunc)(leftString, rightString, result));
-            LOG_ERROR("-----------------");
-            LOG_DEBUG_VARS(*result, "function");
             break;
         default:
             return ARIFM_OPERATIONS_INVALID_ARGUMENT; // TODO: add error
     }
-
-    // FREE(leftString);
-    // FREE(rightString);
 
     return ARIFM_OPERATIONS_STATUS_OK;
 }
