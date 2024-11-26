@@ -8,9 +8,7 @@ enum DumperErrors {
     DUMPER_ERROR_INVALID_ARGUMENT           = 1,
     DUMPER_ERROR_MEMORY_ALLOCATION_ERROR    = 2,
     DUMPER_ERROR_COULD_OPEN_FILE            = 3,
-    DUMPER_ERROR_LIST_SUBLIB_ERROR          = 4,
-    DUMPER_ERROR_ARIFM_TREE_ERROR           = 5,
-    DUMPER_ERROR_ARIFM_OPS_ERROR            = 6,
+    DUMPER_ERROR_ARIFM_OPS_ERROR            = 4,
 };
 
 #include "dumperStruct.hpp"

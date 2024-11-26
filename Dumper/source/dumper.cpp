@@ -39,8 +39,8 @@ const char* getDumperErrorMessage(DumperErrors error) {
             return "Dumper error: memory allocation error.\n";
         case DUMPER_ERROR_COULD_OPEN_FILE:
             return "Dumper error: couldn't open file.\n";
-        case DUMPER_ERROR_LIST_SUBLIB_ERROR:
-            return "Dumper error: error occured in linked list sublib, possibly list is invalid.\n";
+        case DUMPER_ERROR_ARIFM_OPS_ERROR:
+            return "Dumper error: error occured in arifmetic operations sublib.\n";
 
         default:
             return "Dumper error: unknown error.\n";
@@ -355,7 +355,6 @@ DumperErrors dumperDestructor(Dumper* dumper) {
     FREE(buffer);
     FREE(fileFullNameBuffer);
 
-    // ASK: why if free than memory leak?
     fclose(dumper->allLogsFile);
     *dumper = {};
 

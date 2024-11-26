@@ -9,6 +9,11 @@ enum TreeNodeType {
     ARIFM_TREE_FUNC_NODE   = 2,
 }; // ASK: maybe move to arifm operations submodule?
 
+union NodeDataUnion {
+    size_t     data;
+    double     doubleData;
+};
+
 struct Node {
     TreeNodeType nodeType;
     union {

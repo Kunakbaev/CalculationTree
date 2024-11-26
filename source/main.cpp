@@ -28,10 +28,14 @@ int main() {
     IF_MAIN_ARIFM_TREE_ERR_RETURN(constructArifmTree(&tree, &dumper));
     IF_MAIN_ARIFM_TREE_ERR_RETURN(readArifmTreeFromFile(&tree, "expression.txt"));
     //IF_MAIN_ARIFM_TREE_ERR_RETURN(dumpArifmTree(&tree));
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&tree));
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&tree, "expresionLatex.tex"));
+    //IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&tree));
+    //IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&tree, "expresionLatex.tex"));
+
+    ArifmTree diffTree = {};
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(getDerivativeOfTree(&tree, &diffTree));
 
     IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&tree));
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&diffTree));
 
     return 0;
 }

@@ -64,7 +64,7 @@ ArifmOperationsErrors validateArifmOperationsArrays() {
     return ARIFM_OPERATIONS_STATUS_OK;
 }
 
-const char* getFuncName(FunctionsNames funcName) {
+static const char* getFuncName(FunctionsNames funcName) {
     assert(funcName < NUM_OF_FUNCS);
     return functionNames[funcName];
 }
@@ -111,14 +111,13 @@ static ArifmOperationsErrors getFunctionByName(const char* name, Function* func)
 
     return ARIFM_OPERATIONS_FUNC_NOT_FOUND;
 }
-
-static double getVarValue(size_t varIndex) {
-    assert(varIndex < NUM_OF_VARS);
-
-    LOG_ERROR("-----------");
-    LOG_DEBUG_VARS(varIndex, varValuesArr[varIndex]);
-    return varValuesArr[varIndex];
-}
+//
+// static double getVarValue(size_t varIndex) {
+//     assert(varIndex < NUM_OF_VARS);
+//
+//     LOG_DEBUG_VARS(varIndex, varValuesArr[varIndex]);
+//     return varValuesArr[varIndex];
+// }
 
 ArifmOperationsErrors arifmTreeNodeDataToString(const Node* node, char** result) {
     IF_ARG_NULL_RETURN(node);
@@ -142,7 +141,7 @@ ArifmOperationsErrors arifmTreeNodeDataToString(const Node* node, char** result)
             snprintf(*result, BUFF_SIZE, "%g", node->doubleData);
             return ARIFM_OPERATIONS_STATUS_OK;
         case ARIFM_TREE_VAR_NODE:
-            double varValue = getVarValue(node->data);
+            // double varValue = getVarValue(node->data);
             snprintf(*result, BUFF_SIZE, "%c", 'a' + node->data);
             return ARIFM_OPERATIONS_STATUS_OK;
     }
@@ -161,7 +160,7 @@ ArifmOperationsErrors arifmTreeNodeToString(const Node* node, char** result) {
     const char* nodeType = getArifmTreeNodeType(node);
     char*       nodeData = NULL;
     IF_ERR_RETURN(arifmTreeNodeDataToString(node, &nodeData));
-    LOG_DEBUG_VARS(nodeData, nodeType);
+    //LOG_DEBUG_VARS(nodeData, nodeType);
     buffPtr += snprintf(buffPtr, BUFF_SIZE - (buffPtr - *result),
                         "(%s, %s)", nodeType, nodeData);
     FREE(nodeData);

@@ -95,7 +95,7 @@ static ArifmTreeErrors findCommandSubstrSegm(const char* line, size_t len,
     return ARIFM_TREE_STATUS_OK;
 }
 
-ArifmTreeErrors linkNewNodeToParent(ArifmTree* tree, size_t parentInd, bool isLeftSon,
+static ArifmTreeErrors linkNewNodeToParent(ArifmTree* tree, size_t parentInd, bool isLeftSon,
                                     size_t* newNodeInd, const char* substr) {
     IF_ARG_NULL_RETURN(tree);
     IF_ARG_NULL_RETURN(newNodeInd);
