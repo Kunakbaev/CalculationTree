@@ -27,7 +27,7 @@
 
 
 const size_t MIN_MEM_BUFF_SIZE  = 8; // TODO: fix error with array resize
-const size_t OUTPUT_BUFFER_SIZE = 1 << 9;
+const size_t OUTPUT_BUFFER_SIZE = 1 << 11;
 const size_t MAX_OBJ_NAME_LEN   = 30;
 
 static void initMemBuff(ArifmTree* tree) {
@@ -218,6 +218,7 @@ ArifmTreeErrors isArifmTreeNodeLeaf(const ArifmTree* tree, size_t currentNodeInd
 #include "readArifmTreeFromFile.cpp"
 #include "saveArifmTreeToFile.cpp"
 #include "findDerivativeOfTree.cpp"
+#include "treeSimplication.cpp"
 
 ArifmTreeErrors dumpArifmTreeInConsole(const ArifmTree* tree, size_t nodeIndex,
                                                               char** outputBuffer) {

@@ -33,7 +33,7 @@ static double ctan(double x) {
 // ASK: same issue, no error check
 #define ARIFM_OPP_UNARY_FUNC(_, command, __, ___)           \
     double command##Func(double a, double b) {      \
-        return command(a);                     \
+        return command(b);                     \
     }                                               \
 
 #define ARIFM_OPP_BINARY_FUNC(_, command, __, ___)           \

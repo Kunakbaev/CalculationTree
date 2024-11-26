@@ -15,10 +15,14 @@ static size_t getCopyNodeInd(const ArifmTree* tree, ArifmTree* destTree, size_t 
         LOG_DEBUG_VARS(old.left, old.right);
     }
     if (old.left != 0) {
-        node->left = getCopyNodeInd(tree, destTree, old.left);
+        size_t res = getCopyNodeInd(tree, destTree, old.left);
+        node = &destTree->memBuff[dest];
+        node->left = res;
     }
     if (old.right != 0) {
-        node->right = getCopyNodeInd(tree, destTree, old.right);
+        size_t res = getCopyNodeInd(tree, destTree, old.right);
+        node = &destTree->memBuff[dest];
+        node->right = res;
     }
 
     return dest;
@@ -29,11 +33,11 @@ static size_t getCopyNodeInd(const ArifmTree* tree, ArifmTree* destTree, size_t 
 #define NEW_FUNC_NODE(intData, left, right) \
     constructNodeWithKidsNoErrors(destTree, FUNC, {.data = intData}, left, right)
 
-#define NEW_NUM_NODE(data, left, right) \
-    constructNodeWithKidsNoErrors(destTree, NUM, {.doubleData = data}, left, right)
+#define NEW_NUM_NODE(data) \
+    constructNodeWithKidsNoErrors(destTree, NUM, {.doubleData = data}, 0, 0)
 
-#define NEW_VAR_NODE(intData, left, right) \
-    constructNodeWithKidsNoErrors(destTree, VAR, {.data = intData}, left, right)
+#define NEW_VAR_NODE(intData) \
+    constructNodeWithKidsNoErrors(destTree, VAR, {.data = intData}, 0, 0)
 
 #define DIFF(node) \
     findDerivativeOfNode(tree, node, destTree)
@@ -42,42 +46,89 @@ static size_t getCopyNodeInd(const ArifmTree* tree, ArifmTree* destTree, size_t 
 #define NUM  ARIFM_TREE_NUMBER_NODE
 #define VAR  ARIFM_TREE_VAR_NODE
 
-#define ADD(left, right) \
-    do {    \
-        return NEW_FUNC_NODE(ELEM_FUNC_ADD, DIFF(left), DIFF(right)); \
+#define ADD(left, right)                                                        \
+    do {                                                                        \
+        return NEW_FUNC_NODE(ELEM_FUNC_ADD, DIFF(left), DIFF(right));           \
+    } while (0)
+
+#define SUB(left, right)                                                        \
+    do {                                                                        \
+        return NEW_FUNC_NODE(ELEM_FUNC_SUB, DIFF(left), DIFF(right));           \
+    } while (0)
+
+#define MUL(left, right)                                                        \
+    do {                                                                        \
+        return  NEW_FUNC_NODE(ELEM_FUNC_ADD,                                    \
+                    NEW_FUNC_NODE(ELEM_FUNC_MUL, DIFF(left), COPY(right)),      \
+                    NEW_FUNC_NODE(ELEM_FUNC_MUL, COPY(left), DIFF(right))       \
+                );                                                              \
     } while (0)
 
 #define DIV
 
-#define MUL(left, right)                                                        \
+#define DIV(left, right)                                                        \
     do {                                                                        \
-        return  NEW_FUNC_NODE(ELEM_FUNC_ADD,                                   \
-                    NEW_FUNC_NODE(ELEM_FUNC_MUL, DIFF(left), COPY(right)),     \
-                    NEW_FUNC_NODE(ELEM_FUNC_MUL, COPY(left), DIFF(right))     \
+        return  NEW_FUNC_NODE(ELEM_FUNC_DIV,                                    \
+                    NEW_FUNC_NODE(ELEM_FUNC_SUB,                                \
+                        NEW_FUNC_NODE(ELEM_FUNC_MUL, DIFF(left), COPY(right)),  \
+                        NEW_FUNC_NODE(ELEM_FUNC_MUL, COPY(left), DIFF(right))   \
+                    ),                                                          \
+                    NEW_FUNC_NODE(ELEM_FUNC_POW,                                \
+                        COPY(right),                                            \
+                        NEW_NUM_NODE(2)                                        \
+                    )                                                          \
                 );                                                              \
     } while (0)
 
-// #define DIV(left, right)                                                        \
-//     do {                                                                        \
-//         return  NEW_NODE(FUNC, ELEM_FUNC_DIV,                                   \
-//                     NEW_NODE(FUNC, ELEM_FUNC_SUB,                               \
-//                         NEW_NODE(FUNC, ELEM_FUNC_MUL, DIFF(left), COPY(right)), \
-//                         NEW_NODE(FUNC, ELEM_FUNC_MUL, COPY(left), DIFF(right))  \
-//                     ),                                                          \
-//                     NEW_NODE(FUNC, ELEM_FUNC_POW,                               \
-//                         COPY(right),                                            \
-//                         NEW_NODE(NUM,  2, 0, 0),                                \
-//                     ),                                                          \
-//                 );                                                              \
-//     } while (0)
-
-#define SUB
 #define POW
 #define LOG
 #define ROOT
-#define COS
+
+#define COS(left, right)                                                        \
+    do {                                                                        \
+        return NEW_FUNC_NODE(ELEM_FUNC_MUL,                                     \
+            NEW_NUM_NODE(-1),                                                   \
+            NEW_FUNC_NODE(ELEM_FUNC_MUL,                                        \
+                NEW_FUNC_NODE(ELEM_FUNC_SIN, 0, COPY(right)),                   \
+                DIFF(right)                                                     \
+            )                                                                   \
+        );                                                                      \
+    } while (0)
+
 #define SIN
-#define TAN
-#define CTAN
+//#define CTAN
+
+// #define SIN(left, right)                                                        \
+//     do {                                                                        \
+//         return NEW_FUNC_NODE(ELEM_FUNC_COS, 0, DIFF(right));                    \
+//     } while (0)
+
+#define TAN(left, right)                                                        \
+    do {                                                                        \
+        return NEW_FUNC_NODE(ELEM_FUNC_DIV,                                     \
+            DIFF(right),                                                    \
+            NEW_FUNC_NODE(ELEM_FUNC_POW,                                        \
+                NEW_FUNC_NODE(ELEM_FUNC_COS, 0, COPY(right)),                   \
+                NEW_NUM_NODE(2)                                                 \
+            )                                                                   \
+        );                                                                      \
+    } while (0)
+
+#define CTAN(left, right)                                                       \
+    do {                                                                        \
+        return NEW_FUNC_NODE(ELEM_FUNC_MUL,                                     \
+            NEW_NUM_NODE(-1),                                                   \
+            NEW_FUNC_NODE(ELEM_FUNC_MUL,                                        \
+                DIFF(right),                                                    \
+                NEW_FUNC_NODE(ELEM_FUNC_DIV,                                    \
+                    NEW_NUM_NODE(1),                                            \
+                    NEW_FUNC_NODE(ELEM_FUNC_POW,                                \
+                        NEW_FUNC_NODE(ELEM_FUNC_SIN, 0, DIFF(right)),           \
+                        NEW_NUM_NODE(2)                                         \
+                    )                                                           \
+                )                                                               \
+            )                                                                   \
+        );                                                                      \
+    } while (0)
 
 #endif

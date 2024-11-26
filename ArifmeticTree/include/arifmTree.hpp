@@ -25,6 +25,7 @@ ArifmTreeErrors dumpArifmTreeInConsole(const ArifmTree* tree, size_t nodeIndex,
 ArifmTreeErrors dumpArifmTree(ArifmTree* tree);
 ArifmTreeErrors openImageOfCurrentStateArifmTree(ArifmTree* tree);
 
+ArifmTreeErrors simplifyTree(ArifmTree* tree);
 ArifmTreeErrors getDerivativeOfTree(ArifmTree* source, ArifmTree* dest);
 ArifmTreeErrors isNodeAleftSonOfParent(const ArifmTree* tree, size_t parentInd, size_t vertInd, bool* is);
 ArifmTreeErrors destructArifmTree(ArifmTree* tree);

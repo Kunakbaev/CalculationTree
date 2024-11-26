@@ -33,6 +33,14 @@ int main() {
 
     ArifmTree diffTree = {};
     IF_MAIN_ARIFM_TREE_ERR_RETURN(getDerivativeOfTree(&tree, &diffTree));
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&diffTree, "bruh.tex"));
+
+    // IF_MAIN_ARIFM_TREE_ERR_RETURN(simplifyTree(&tree));
+    // IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&tree));
+
+    // LOG_ERROR("--------------------------------");
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(simplifyTree(&diffTree));
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&diffTree));
 
     IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&tree));
     IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&diffTree));
