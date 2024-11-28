@@ -17,7 +17,7 @@
     } while(0)
 
 int main() {
-    setLoggingLevel(DEBUG);
+    // setLoggingLevel(DEBUG);
 
     LOG_DEBUG("Hello world!");
 

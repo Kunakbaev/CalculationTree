@@ -3,7 +3,7 @@
 #include "../include/commonFileStart.hpp"
 #include "../../ArifmOperations/include/functionsDiffDefines.hpp"
 
-size_t findDerivativeOfNode(const ArifmTree* tree, size_t nodeInd, ArifmTree* destTree) {
+static size_t findDerivativeOfNode(const ArifmTree* tree, size_t nodeInd, ArifmTree* destTree) {
     assert(tree     != NULL);
     assert(destTree != NULL);
     assert(nodeInd  <= tree->freeNodeIndex);

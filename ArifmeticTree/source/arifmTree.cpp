@@ -60,23 +60,21 @@ ArifmTreeErrors constructArifmTree(ArifmTree* tree, Dumper* dumper) {
 static ArifmTreeErrors constructNode(ArifmTree* tree, Node* node, TreeNodeType nodeType, const NodeDataUnion data) {
     IF_ARG_NULL_RETURN(tree);
     IF_ARG_NULL_RETURN(node);
-    //IF_ARG_NULL_RETURN(data);
 
     node->left     = node->right = node->parent = 0;
     node->nodeType = nodeType;
-    double* ptr = NULL;
+    double* ptr    = NULL;
     LOG_DEBUG_VARS(data.data, data.doubleData);
     switch (nodeType) {
         case ARIFM_TREE_VAR_NODE:
             node->data = data.data;
+            break;
         case ARIFM_TREE_NUMBER_NODE:
-            //ptr = (double*)data;
-            //LOG_DEBUG_VARS(data, ptr, *ptr);
             node->doubleData = data.doubleData;
             break;
-            //node->doubleData = data;
         case ARIFM_TREE_FUNC_NODE:
             node->data = data.data;
+            break;
         default:
             return ARIFM_TREE_INVALID_NODE_TYPE;
     }
@@ -161,21 +159,7 @@ ArifmTreeErrors getNewNode(ArifmTree* tree, size_t* newNodeIndex) {
         IF_ERR_RETURN(resizeMemBuffer(tree, tree->memBuffSize * 2));
     }
     assert(tree->freeNodeIndex < tree->memBuffSize);
-
     *newNodeIndex = ++tree->freeNodeIndex;
-    // LOG_DEBUG_VARS(*newNodeIndex, tree->memBuffSize);
-    // LOG_DEBUG_VARS(newNodeIndex, tree->memBuff[*newNodeIndex].memBuffIndex);
-
-    return ARIFM_TREE_STATUS_OK;
-}
-
-ArifmTreeErrors isNodeAleftSonOfParent(const ArifmTree* tree, size_t parentInd, size_t vertInd, bool* is) {
-    IF_ARG_NULL_RETURN(tree);
-    IF_NOT_COND_RETURN(parentInd < tree->memBuffSize,
-                       ARIFM_TREE_INVALID_ARGUMENT);
-
-    Node parent = tree->memBuff[parentInd];
-    *is = vertInd == parent.left;
 
     return ARIFM_TREE_STATUS_OK;
 }
@@ -188,30 +172,6 @@ ArifmTreeErrors getArifmTreeNodeByVertIndex(const ArifmTree* tree, size_t vertIn
 
     *result = tree->memBuff[vertInd];
 
-    return ARIFM_TREE_STATUS_OK;
-}
-
-ArifmTreeErrors isArifmTreeEmpty(const ArifmTree* tree, bool* is) {
-    IF_ARG_NULL_RETURN(tree);
-    IF_ARG_NULL_RETURN(is);
-
-    *is = tree->root == 0;
-
-    return ARIFM_TREE_STATUS_OK;
-}
-
-ArifmTreeErrors isArifmTreeNodeLeaf(const ArifmTree* tree, size_t currentNodeInd, bool* is) {
-    IF_ARG_NULL_RETURN(tree);
-    IF_ARG_NULL_RETURN(is);
-
-    if (!currentNodeInd) {
-        *is = true;
-        return ARIFM_TREE_STATUS_OK;
-    }
-
-    assert(currentNodeInd < tree->memBuffSize);
-    Node node = tree->memBuff[currentNodeInd];
-    *is = node.left == 0 && node.right == 0;
     return ARIFM_TREE_STATUS_OK;
 }
 
@@ -297,26 +257,31 @@ ArifmTreeErrors dumpArifmTree(ArifmTree* tree) {
     size_t nodesArr[MAX_NUM_OF_NODES_IN_ONE_COLOR_WITH_NODES_STRUCT] = {}; // ASK: is it ok?
     nodesArr[0] = {tree->freeNodeIndex};
     NodesWithColor rule1 = {
-        "green",
+        "#004000",
+        "#006000",
         (size_t)1,
         nodesArr,
     };
 
     #define ARR_LEN(arr) sizeof((arr)) / sizeof(*(arr))
-    #define NODE_RULE(name, color, ind)         \
-        NodesWithColor rule4##name = {          \
-            color,                              \
-            ARR_LEN(diffNodeTypes[ind]),        \
-            diffNodeTypes[ind],                 \
-        }                                       \
+    #define NODE_RULE(name, color, borderColor, ind)         \
+        NodesWithColor rule4##name = {                       \
+            color,                                           \
+            borderColor,                                     \
+            ARR_LEN(diffNodeTypes[ind]),                     \
+            diffNodeTypes[ind],                              \
+        }                                                    \
 
-    NODE_RULE(nums,  "yellow", ARIFM_TREE_NUMBER_NODE);
-    NODE_RULE(vars,  "pink",   ARIFM_TREE_VAR_NODE);
-    NODE_RULE(funcs, "red",    ARIFM_TREE_FUNC_NODE);
+    NODE_RULE(nums,  "#603000", "#704000", ARIFM_TREE_NUMBER_NODE);
+    NODE_RULE(vars,  "#400040", "#600060", ARIFM_TREE_VAR_NODE);
+    NODE_RULE(funcs, "#600000", "#800000", ARIFM_TREE_FUNC_NODE);
 
     NodesWithColor coloringRule[] = {
         rule1, rule4nums, rule4vars, rule4funcs
     };
+    // Node2stringSettings nodeDumpSettings = {
+    //     true, true, true,
+    // };
     Node2stringSettings nodeDumpSettings = {
         false, false, false,
     };
@@ -433,7 +398,7 @@ ArifmTreeErrors destructArifmTree(ArifmTree* tree) {
 
     tree->memBuffSize   = 0;
     tree->freeNodeIndex = 0;
-    // ASK: how to properly destruct dumper
+    // ASK: how to properly destruct dumper?
     // dumperDestructor(&tree->dumper);
 
     return ARIFM_TREE_STATUS_OK;

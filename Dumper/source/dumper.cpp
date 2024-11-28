@@ -120,6 +120,7 @@ void dumperAddImgToAllLogsFile(Dumper* dumper, const char* imagePath) {
 static DumperErrors addNodeDumpStructToBuffer(Dumper* dumper,
                                               const Node* node,
                                               const char* color,
+                                              const char* borderColor,
                                               const DumperSettings* settings) {
     IF_ARG_NULL_RETURN(dumper);
     IF_ARG_NULL_RETURN(settings);
@@ -130,19 +131,17 @@ static DumperErrors addNodeDumpStructToBuffer(Dumper* dumper,
         char* nodesDataStr = NULL;
         ARIFM_OPS_ERR_CHECK(arifmTreeNodeToString(node, &nodesDataStr,
                                                   &settings->node2stringSettings));
-        // LOG_INFO("----------------");
         LOG_DEBUG_VARS(nodesDataStr, node->data, node->memBuffIndex);
 
         char* tmpPtr = tmpBuffer;
+        LOG_DEBUG_VARS(color);
         tmpPtr += snprintf(tmpPtr, TMP_BUFFER_SIZE - (tmpPtr - tmpBuffer),
-        "iamnode_id_%zu [shape=circle, margin=0, fontcolor=white, color=%s, label=< \n"
-            "<TABLE cellspacing=\"0\"> \n"
+        "iamnode_id_%zu [shape=circle, style=filled, fillcolor=\"%s\" margin=0, penwidth=\"3%\" fontcolor=white, color=\"%s\", label=< \n"
+            "<TABLE cellspacing=\"0\" border=\"0\"> \n"
                 "<TR><TD colspan=\"2\">%s</TD></TR>\n",
-                node->memBuffIndex, color, nodesDataStr);
+                node->memBuffIndex, color, borderColor, nodesDataStr); // Mrecord
 
         if (settings->isMemIndexesInfoNeeded) {
-            // LOG_ERROR("bruh");
-            // exit(0);
             tmpPtr += snprintf(tmpPtr, TMP_BUFFER_SIZE - (tmpPtr - tmpBuffer),
                     "<TR><TD colspan=\"2\">memIndex:  %zu</TD></TR>\n"
                     "<TR><TD>left:  %zu</TD>\n"
@@ -166,7 +165,7 @@ static DumperErrors addNodeDumpStructToBuffer(Dumper* dumper,
 }
 
 DumperErrors dumperDumpSingleTreeNode(Dumper* dumper,
-                                      const Node* node, const char* nodeColor,
+                                      const Node* node, const char* nodeColor, const char* borderColor,
                                       const DumperSettings* settings) {
     IF_ARG_NULL_RETURN(dumper);
     IF_ARG_NULL_RETURN(settings);
@@ -194,7 +193,7 @@ DumperErrors dumperDumpSingleTreeNode(Dumper* dumper,
         pad=0.2\n\
     ", BUFFER_SIZE);
 
-    IF_ERR_RETURN(addNodeDumpStructToBuffer(dumper, node, nodeColor, settings));
+    IF_ERR_RETURN(addNodeDumpStructToBuffer(dumper, node, nodeColor, borderColor, settings));
     strncat(buffer, "}\n", BUFFER_SIZE);
     fprintf(outputFile, buffer);
     fclose(outputFile);
@@ -219,20 +218,23 @@ DumperErrors dumperDumpSingleTreeNode(Dumper* dumper,
 
 static const char*  DEFAULT_COLOR = "white";
 
-static const char* getNodeColor(const Node* node, const DumperSettings* settings) {
+static const char* getNodeColor(const Node* node, const DumperSettings* settings, const char** borderColorRes) {
     assert(node                      != NULL);
     assert(settings                  != NULL);
     assert(settings->coloringRule    != NULL);
     assert(settings->coloringRuleLen  < MAX_COLORING_RULE_LEN);
+    assert(borderColorRes            != NULL);
 
     for (size_t arrInd = 0; arrInd < settings->coloringRuleLen; ++arrInd) {
-        const char* color = settings->coloringRule[arrInd].color;
-        size_t*     nodes = settings->coloringRule[arrInd].nodes;
-        size_t   nodesLen = settings->coloringRule[arrInd].numOfNodes;
+        const char* color       = settings->coloringRule[arrInd].color;
+        const char* borderColor = settings->coloringRule[arrInd].borderColor;
+        size_t*     nodes       = settings->coloringRule[arrInd].nodes;
+        size_t   nodesLen       = settings->coloringRule[arrInd].numOfNodes;
 
         for (size_t nodeArrInd = 0; nodeArrInd < nodesLen; ++nodeArrInd) {
             size_t nodeInd = nodes[nodeArrInd];
             if (nodeInd == node->memBuffIndex) {
+                *borderColorRes = borderColor;
                 return color;
             }
         }
@@ -254,8 +256,9 @@ static DumperErrors drawArifmTreeRecursively(Dumper* dumper, const ArifmTree* tr
     assert(nodeInd < tree->memBuffSize);
     Node node = tree->memBuff[nodeInd];
 
-    const char* color = getNodeColor(&node, settings);
-    IF_ERR_RETURN(addNodeDumpStructToBuffer(dumper, &node, color, settings));
+    const char* borderColor = NULL;
+    const char* color = getNodeColor(&node, settings, &borderColor);
+    IF_ERR_RETURN(addNodeDumpStructToBuffer(dumper, &node, color, borderColor, settings));
 
     if (parentInd != 0) {
         memset(tmpBuffer, 0, TMP_BUFFER_SIZE);

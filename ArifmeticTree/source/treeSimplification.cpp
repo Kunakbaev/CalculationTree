@@ -27,9 +27,11 @@ static ArifmTreeErrors simplifyNoVarsSubtree(ArifmTree* tree, size_t newLeftNode
 //     }
 // }
 
-static ArifmTreeErrors simplifyTreeRecursive(ArifmTree* tree, size_t nodeInd, size_t* resultNodeInd, bool* wasVariable) {
+static ArifmTreeErrors simplifyTreeRecursive(ArifmTree* tree, size_t nodeInd, size_t* resultNodeInd,
+                                             bool* wasVariable, bool* wasSimplification) {
     IF_ARG_NULL_RETURN(tree);
     IF_ARG_NULL_RETURN(wasVariable);
+    IF_ARG_NULL_RETURN(wasSimplification);
     IF_ARG_NULL_RETURN(resultNodeInd);
     IF_NOT_COND_RETURN(nodeInd <= tree->freeNodeIndex,
                        ARIFM_TREE_INVALID_ARGUMENT);
@@ -47,10 +49,10 @@ static ArifmTreeErrors simplifyTreeRecursive(ArifmTree* tree, size_t nodeInd, si
     }
 
     if (node.left != 0) {
-        IF_ERR_RETURN(simplifyTreeRecursive(tree, node.left,  &newLeftNode,  &wasVarInLeft));
+        IF_ERR_RETURN(simplifyTreeRecursive(tree, node.left,  &newLeftNode,  &wasVarInLeft, wasSimplification));
     }
     if (node.right != 0) {
-        IF_ERR_RETURN(simplifyTreeRecursive(tree, node.right, &newRightNode, &wasVarInRight));
+        IF_ERR_RETURN(simplifyTreeRecursive(tree, node.right, &newRightNode, &wasVarInRight, wasSimplification));
     }
 
     Function func = {};
@@ -58,89 +60,67 @@ static ArifmTreeErrors simplifyTreeRecursive(ArifmTree* tree, size_t nodeInd, si
     double one = tree->memBuff[newLeftNode]. doubleData;
     double two = tree->memBuff[newRightNode].doubleData;
 
-    *wasVariable = wasVarInLeft | wasVarInRight;
+    #define REDUCE_TO_CONST_AND_RETURN(number)                                                  \
+        do {                                                                                    \
+            *wasSimplification = true;                                                          \
+            *wasVariable       = false;                                                         \
+            *resultNodeInd     = constructNodeWithKidsNoErrors(tree, ARIFM_TREE_NUMBER_NODE,    \
+                                                           {.doubleData = number}, 0, 0);       \
+            return ARIFM_TREE_STATUS_OK;                                                        \
+        } while (0)                                                                             \
+
+    #define LEAVE_LEFT_SON_AND_RETURN()                                                         \
+        do {                                                                                    \
+            *wasSimplification = true;                                                          \
+            *wasVariable       = wasVarInLeft;                                                  \
+            *resultNodeInd     = newLeftNode;                                                   \
+            return ARIFM_TREE_STATUS_OK;                                                        \
+        } while (0)
+
+    #define LEAVE_RIGHT_SON_AND_RETURN()                                                        \
+        do {                                                                                    \
+            *wasSimplification = true;                                                          \
+            *wasVariable   = wasVarInRight;                                                     \
+            *resultNodeInd = newRightNode;                                                      \
+            return ARIFM_TREE_STATUS_OK;                                                        \
+        } while (0)
+
+    #define IS_L_EQ2(num) (one == (num) && !wasVarInLeft)
+    #define IS_R_EQ2(num) (two == (num) && !wasVarInRight)
+
     if (!wasVarInLeft && !wasVarInRight) {
         double calcRes = (*func.calculationFunc)(one, two);
         LOG_DEBUG_VARS(one, two, calcRes, func.name);
-
-        *resultNodeInd = constructNodeWithKidsNoErrors(tree, ARIFM_TREE_NUMBER_NODE,
-                                                       {.doubleData = calcRes}, 0, 0);
-        return ARIFM_TREE_STATUS_OK;
+        REDUCE_TO_CONST_AND_RETURN(calcRes);
     }
 
     *resultNodeInd = nodeInd;
     if (func.name == ELEM_FUNC_ADD || func.name == ELEM_FUNC_SUB) {
-        if (one == 0 && !wasVarInLeft) {
-            *resultNodeInd = newRightNode;
-            return ARIFM_TREE_STATUS_OK;
-        }
-        if (two == 0 && !wasVarInRight) {
-            *resultNodeInd = newLeftNode;
-            return ARIFM_TREE_STATUS_OK;
-        }
+        if (IS_L_EQ2(0)) LEAVE_RIGHT_SON_AND_RETURN();
+        if (IS_R_EQ2(0)) LEAVE_LEFT_SON_AND_RETURN();
     }
 
     if (func.name == ELEM_FUNC_MUL) {
-        if (one == 1 && !wasVarInLeft) {
-            *wasVariable = wasVarInLeft;
-            *resultNodeInd = newRightNode;
-            return ARIFM_TREE_STATUS_OK;
-        }
-        if (two == 1 && !wasVarInRight) {
-            *wasVariable = wasVarInRight;
-            *resultNodeInd = newLeftNode;
-            return ARIFM_TREE_STATUS_OK;
-        }
-        if ((one == 0 && !wasVarInLeft) ||
-            (two == 0 && !wasVarInRight)) {
-            LOG_ERROR("--------------fdas------------------");
-            *wasVariable = false;
-            *resultNodeInd = constructNodeWithKidsNoErrors(tree, ARIFM_TREE_NUMBER_NODE,
-                                                           {.doubleData = 0}, 0, 0);
-            return ARIFM_TREE_STATUS_OK;
-        }
-        return ARIFM_TREE_STATUS_OK;
+        if (IS_L_EQ2(1))                LEAVE_RIGHT_SON_AND_RETURN();
+        if (IS_R_EQ2(1))                LEAVE_LEFT_SON_AND_RETURN();
+        if (IS_L_EQ2(0) || IS_R_EQ2(0)) REDUCE_TO_CONST_AND_RETURN(0);
     }
 
     if (func.name == ELEM_FUNC_DIV) {
-        if (two == 1 && !wasVarInRight) {
-            *wasVariable = wasVarInLeft;
-            *resultNodeInd = newLeftNode;
-            return ARIFM_TREE_STATUS_OK;
-        }
-        if (one == 0 && !wasVarInLeft) {
-            *wasVariable = false;
-            *resultNodeInd = constructNodeWithKidsNoErrors(tree, ARIFM_TREE_NUMBER_NODE,
-                                                           {.doubleData = 0}, 0, 0);
-            return ARIFM_TREE_STATUS_OK;
-        }
-        if (two == 0 && !wasVarInRight) {
+        if (IS_R_EQ2(1)) LEAVE_LEFT_SON_AND_RETURN();
+        if (IS_L_EQ2(0)) REDUCE_TO_CONST_AND_RETURN(0);
+        if (IS_R_EQ2(0)) {
             // TODO: division error
-
         }
     }
 
     if (func.name == ELEM_FUNC_POW) {
-        if ((one == 1 && !wasVarInLeft) ||
-            (two == 0 && !wasVarInRight)) {
-            *wasVariable = false;
-            *resultNodeInd = constructNodeWithKidsNoErrors(tree, ARIFM_TREE_NUMBER_NODE,
-                                                           {.doubleData = 1}, 0, 0);
-            return ARIFM_TREE_STATUS_OK;
-        }
-        if (two == 1 && !wasVarInRight) {
-            *wasVariable = wasVarInLeft;
-            *resultNodeInd = newLeftNode;
-            return ARIFM_TREE_STATUS_OK;
-        }
-        if (one == 0 && !wasVarInLeft) {
-            *wasVariable = wasVarInLeft;
-            *resultNodeInd = constructNodeWithKidsNoErrors(tree, ARIFM_TREE_NUMBER_NODE,
-                                                           {.doubleData = 0}, 0, 0);
-            return ARIFM_TREE_STATUS_OK;
-        }
+        if (IS_L_EQ2(1) || IS_R_EQ2(0)) REDUCE_TO_CONST_AND_RETURN(1);
+        if (IS_R_EQ2(1))                LEAVE_LEFT_SON_AND_RETURN();
+        if (IS_L_EQ2(0))                REDUCE_TO_CONST_AND_RETURN(0);
     }
 
+    *wasVariable = wasVarInLeft | wasVarInRight;
     *resultNodeInd = constructNodeWithKidsNoErrors(tree, node.nodeType,
                                                    {.data=node.data}, newLeftNode, newRightNode);
     tree->memBuff[*resultNodeInd].doubleData = node.doubleData;
@@ -151,15 +131,13 @@ static ArifmTreeErrors simplifyTreeRecursive(ArifmTree* tree, size_t nodeInd, si
 ArifmTreeErrors simplifyTree(ArifmTree* tree) {
     IF_ARG_NULL_RETURN(tree);
 
-    bool wasChange = true;
-    while (wasChange) {
+    bool wasSimplification = true;
+    while (wasSimplification) {
         bool wasVar = false;
         size_t newRoot = 0;
-        IF_ERR_RETURN(simplifyTreeRecursive(tree, tree->root, &newRoot, &wasVar));
-        wasChange &= newRoot != tree->root;
+        wasSimplification = false;
+        IF_ERR_RETURN(simplifyTreeRecursive(tree, tree->root, &newRoot, &wasVar, &wasSimplification));
         tree->root = newRoot;
-        LOG_DEBUG_VARS("bruh");
-        break;
     }
 
     IF_ERR_RETURN(assignParentNodes(tree, tree->root, 0));

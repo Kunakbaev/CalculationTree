@@ -20,6 +20,7 @@ const size_t MAX_NUM_OF_NODES_IN_ONE_COLOR_WITH_NODES_STRUCT = 100;
 
 struct NodesWithColor {
     const char* color;
+    const char* borderColor;
     size_t      numOfNodes;
     size_t*     nodes;
 };

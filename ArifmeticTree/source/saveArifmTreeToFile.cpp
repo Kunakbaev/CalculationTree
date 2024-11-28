@@ -47,9 +47,8 @@ static ArifmTreeErrors recursiveTreeSaveToFile(ArifmTree* tree, size_t nodeInd, 
     return ARIFM_TREE_STATUS_OK;
 }
 
-static void saveTexBufferToFile(const char* fileName, char* buffer) {
+static void saveTexBufferToFile(const char* fileName) {
     assert(fileName != NULL);
-    assert(buffer != NULL);
 
     system("mkdir -p latexPdfs");
     const size_t TMP_BUFF_SIZE = 100;
@@ -80,7 +79,7 @@ ArifmTreeErrors saveArifmTreeToFile(ArifmTree* tree, const char* fileName) {
     fclose(file);
     FREE(buffer);
 
-    saveTexBufferToFile(fileName, buffer);
+    saveTexBufferToFile(fileName);
 
     return ARIFM_TREE_STATUS_OK;
 }
