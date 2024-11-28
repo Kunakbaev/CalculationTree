@@ -218,10 +218,10 @@ ArifmTreeErrors isArifmTreeNodeLeaf(const ArifmTree* tree, size_t currentNodeInd
 #include "readArifmTreeFromFile.cpp"
 #include "saveArifmTreeToFile.cpp"
 #include "findDerivativeOfTree.cpp"
-#include "treeSimplication.cpp"
+#include "treeSimplification.cpp"
 
 ArifmTreeErrors dumpArifmTreeInConsole(const ArifmTree* tree, size_t nodeIndex,
-                                                              char** outputBuffer) {
+                                       char** outputBuffer, const Node2stringSettings* settings) {
     IF_ARG_NULL_RETURN(tree);
     IF_ARG_NULL_RETURN(outputBuffer);
     IF_ARG_NULL_RETURN(*outputBuffer);
@@ -237,15 +237,15 @@ ArifmTreeErrors dumpArifmTreeInConsole(const ArifmTree* tree, size_t nodeIndex,
 
     assert(nodeIndex < tree->memBuffSize);
     Node node = tree->memBuff[nodeIndex];
-    IF_ERR_RETURN(dumpArifmTreeInConsole(tree, node.left, outputBuffer));
+    IF_ERR_RETURN(dumpArifmTreeInConsole(tree, node.left, outputBuffer, settings));
 
     char* nodeDataString = NULL;
-    ARIFM_OPS_ERR_CHECK(arifmTreeNodeToString(&node, &nodeDataString));
+    ARIFM_OPS_ERR_CHECK(arifmTreeNodeToString(&node, &nodeDataString, settings));
     //LOG_DEBUG_VARS(node.memBuffIndex, nodeDataString);
     (*outputBuffer) += snprintf(*outputBuffer, OUTPUT_BUFFER_SIZE, " %s ", nodeDataString);
     FREE(nodeDataString);
 
-    IF_ERR_RETURN(dumpArifmTreeInConsole(tree, node.right, outputBuffer));
+    IF_ERR_RETURN(dumpArifmTreeInConsole(tree, node.right, outputBuffer, settings));
 
     strncat(*outputBuffer, ")", OUTPUT_BUFFER_SIZE);
     ++(*outputBuffer);
@@ -265,10 +265,16 @@ ArifmTreeErrors dumpArifmTree(ArifmTree* tree) {
     IF_NOT_COND_RETURN(outputBuffer != NULL,
                        ARIFM_TREE_MEMORY_ALLOCATION_ERROR);
 
+    Node2stringSettings nodeSettings = {
+        false, false, false
+    };
+
+    size_t diffNodeTypes[3][MAX_NUM_OF_NODES_IN_ONE_COLOR_WITH_NODES_STRUCT] = {};
+    size_t diffNodeTypesPtr[3] = {};
     for (size_t nodeInd = 0; nodeInd < tree->memBuffSize; ++nodeInd) {
         Node node = tree->memBuff[nodeInd];
         char* data = NULL;
-        ARIFM_OPS_ERR_CHECK(arifmTreeNodeToString(&node, &data));
+        ARIFM_OPS_ERR_CHECK(arifmTreeNodeToString(&node, &data, &nodeSettings));
 
         size_t parent = node.parent;
         size_t left   = node.left;
@@ -276,10 +282,13 @@ ArifmTreeErrors dumpArifmTree(ArifmTree* tree) {
         LOG_DEBUG_VARS(nodeInd, data, parent, left, right);
         DEBUG_VARS_TO_DUMPER_ALL_LOGS_FILE(&tree->dumper, nodeInd, data, parent, left, right);
         FREE(data);
+
+        assert(node.nodeType < 3);
+        diffNodeTypes[node.nodeType][diffNodeTypesPtr[node.nodeType]++] = nodeInd;
     }
 
     char* targetPtr = outputBuffer;
-    IF_ERR_RETURN(dumpArifmTreeInConsole(tree, tree->root, &targetPtr));
+    IF_ERR_RETURN(dumpArifmTreeInConsole(tree, tree->root, &targetPtr, &nodeSettings));
     LOG_DEBUG(outputBuffer);
     DEBUG_MESSAGE_TO_DUMPER_ALL_LOGS_FILE(&tree->dumper, outputBuffer);
     FREE(outputBuffer);
@@ -292,8 +301,32 @@ ArifmTreeErrors dumpArifmTree(ArifmTree* tree) {
         (size_t)1,
         nodesArr,
     };
-    NodesWithColor coloringRule[] = {rule1};
-    DUMPER_ERR_CHECK(dumperDumpArifmTree(&tree->dumper, tree, coloringRule, 1));
+
+    #define ARR_LEN(arr) sizeof((arr)) / sizeof(*(arr))
+    #define NODE_RULE(name, color, ind)         \
+        NodesWithColor rule4##name = {          \
+            color,                              \
+            ARR_LEN(diffNodeTypes[ind]),        \
+            diffNodeTypes[ind],                 \
+        }                                       \
+
+    NODE_RULE(nums,  "yellow", ARIFM_TREE_NUMBER_NODE);
+    NODE_RULE(vars,  "pink",   ARIFM_TREE_VAR_NODE);
+    NODE_RULE(funcs, "red",    ARIFM_TREE_FUNC_NODE);
+
+    NodesWithColor coloringRule[] = {
+        rule1, rule4nums, rule4vars, rule4funcs
+    };
+    Node2stringSettings nodeDumpSettings = {
+        false, false, false,
+    };
+    DumperSettings settings = {
+        coloringRule,
+        ARR_LEN(coloringRule),
+        false,
+        nodeDumpSettings,
+    };
+    DUMPER_ERR_CHECK(dumperDumpArifmTree(&tree->dumper, tree, &settings));
 
     return ARIFM_TREE_STATUS_OK;
 }

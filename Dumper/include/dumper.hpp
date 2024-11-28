@@ -13,6 +13,7 @@ enum DumperErrors {
 
 #include "dumperStruct.hpp"
 #include "../../ArifmeticTree/include/arifmTree.hpp"
+#include "../../ArifmOperations/include/arifmOperations.hpp"
 
 const size_t MAX_COLORING_RULE_LEN                           = 20;
 const size_t MAX_NUM_OF_NODES_IN_ONE_COLOR_WITH_NODES_STRUCT = 100;
@@ -23,16 +24,21 @@ struct NodesWithColor {
     size_t*     nodes;
 };
 
+struct DumperSettings {
+    const NodesWithColor* coloringRule;
+    size_t                coloringRuleLen;
+    bool                  isMemIndexesInfoNeeded;
+    Node2stringSettings   node2stringSettings;
+};
+
 DumperErrors dumperConstructor(Dumper* dumper,
                                size_t maxNumOfNodesToDraw,
                                const char* dirForLogsPath,
                                const char* outputFileFormat);
 void dumperAddDebugInfoToAllLogsFile(Dumper* dumper, const char* debugInfo);
 void dumperAddImgToAllLogsFile(Dumper* dumper, const char* imagePath);
-DumperErrors dumperDumpSingleTreeNode(Dumper* dumper, const Node* node, const char* nodeColor);
-DumperErrors dumperDumpArifmTree(Dumper* dumper, const ArifmTree* tree,
-                                 const NodesWithColor* coloringRule,
-                                 size_t coloringRuleLen);
+DumperErrors dumperDumpSingleTreeNode(Dumper* dumper, const Node* node, const DumperSettings* settings);
+DumperErrors dumperDumpArifmTree(Dumper* dumper, const ArifmTree* tree, const DumperSettings* settings);
 char* getLastImageFileName(const Dumper* dumper);
 DumperErrors dumperDestructor(Dumper* dumper);
 

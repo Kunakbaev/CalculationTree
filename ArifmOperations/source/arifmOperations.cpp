@@ -119,13 +119,21 @@ static ArifmOperationsErrors getFunctionByName(const char* name, Function* func)
 //     return varValuesArr[varIndex];
 // }
 
-ArifmOperationsErrors arifmTreeNodeDataToString(const Node* node, char** result) {
+ArifmOperationsErrors arifmTreeNodeDataToString(const Node* node, char** result,
+                                                bool isFuncTypeNeeded) {
     IF_ARG_NULL_RETURN(node);
     IF_ARG_NULL_RETURN(result);
 
     const size_t BUFF_SIZE = 1 << 8;
     *result = (char*)calloc(BUFF_SIZE, sizeof(char));
     IF_NOT_COND_RETURN(*result != NULL, ARIFM_OPERATIONS_MEMORY_ALLOCATION_ERROR);
+    char* resultPtr = *result;
+
+    #define ADD2BUFF(format, ...)                                                 \
+        do {                                                                      \
+            resultPtr += snprintf(resultPtr, BUFF_SIZE - (resultPtr - *result),   \
+                                  format, __VA_ARGS__);                           \
+        } while (0)
 
     Function func        = {};
     const char* funcName = NULL;
@@ -134,23 +142,26 @@ ArifmOperationsErrors arifmTreeNodeDataToString(const Node* node, char** result)
             assert(node->data < NUM_OF_FUNCS);
             func     = functions[node->data];
             funcName = getFuncName(func.name);
-            snprintf(*result, BUFF_SIZE, "%s, %s",
-                     getFuncType(&func), funcName);
+
+            if (isFuncTypeNeeded) ADD2BUFF("%s, %s", getFuncType(&func), funcName);
+            else                  ADD2BUFF("%s",     funcName);
+
             return ARIFM_OPERATIONS_STATUS_OK;
         case ARIFM_TREE_NUMBER_NODE:
-            snprintf(*result, BUFF_SIZE, "%g", node->doubleData);
+            ADD2BUFF("%g", node->doubleData);
             return ARIFM_OPERATIONS_STATUS_OK;
         case ARIFM_TREE_VAR_NODE:
-            // double varValue = getVarValue(node->data);
-            snprintf(*result, BUFF_SIZE, "%c", 'a' + node->data);
+            ADD2BUFF("%c", 'a' + node->data);
             return ARIFM_OPERATIONS_STATUS_OK;
     }
 
     return ARIFM_OPERATIONS_STATUS_OK;
 }
 
-ArifmOperationsErrors arifmTreeNodeToString(const Node* node, char** result) {
+ArifmOperationsErrors arifmTreeNodeToString(const Node* node, char** result,
+                                            const Node2stringSettings* settings) {
     IF_ARG_NULL_RETURN(node);
+    IF_ARG_NULL_RETURN(settings);
 
     const size_t BUFF_SIZE = 1 << 9;
     *result = (char*)calloc(BUFF_SIZE, sizeof(char));
@@ -159,10 +170,18 @@ ArifmOperationsErrors arifmTreeNodeToString(const Node* node, char** result) {
 
     const char* nodeType = getArifmTreeNodeType(node);
     char*       nodeData = NULL;
-    IF_ERR_RETURN(arifmTreeNodeDataToString(node, &nodeData));
-    //LOG_DEBUG_VARS(nodeData, nodeType);
-    buffPtr += snprintf(buffPtr, BUFF_SIZE - (buffPtr - *result),
-                        "(%s, %s)", nodeType, nodeData);
+
+    #define ADD2BUFF(format, ...)                                           \
+        do {                                                                \
+            buffPtr += snprintf(buffPtr, BUFF_SIZE - (buffPtr - *result),   \
+                                format, __VA_ARGS__);                       \
+        } while (0)
+
+    IF_ERR_RETURN(arifmTreeNodeDataToString(node, &nodeData, settings->isFuncTypeNeeded));
+    if (settings->isBracketsNeeded) ADD2BUFF("%s", "(");
+    if (settings->isNodeTypeNeeded) ADD2BUFF("%s, %s", nodeType, nodeData);
+    else                            ADD2BUFF("%s", nodeData);
+    if (settings->isBracketsNeeded) ADD2BUFF("%s", ")");
     FREE(nodeData);
 
     return ARIFM_OPERATIONS_STATUS_OK;
@@ -249,7 +268,7 @@ ArifmOperationsErrors getNodeLatexString(const Node* node, char* leftString, cha
     switch (node->nodeType) {
         case ARIFM_TREE_NUMBER_NODE:
         case ARIFM_TREE_VAR_NODE:
-            IF_ERR_RETURN(arifmTreeNodeDataToString(node, result));
+            IF_ERR_RETURN(arifmTreeNodeDataToString(node, result, false));
             break;
         case ARIFM_TREE_FUNC_NODE:
             IF_ERR_RETURN(getFuncByIndex(node->data, &func));

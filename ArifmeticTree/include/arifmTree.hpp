@@ -21,7 +21,7 @@ size_t constructNodeWithKidsNoErrors(ArifmTree* tree, TreeNodeType nodeType, con
                                      size_t leftSon,  size_t rightSon);
 ArifmTreeErrors validateArifmTree(const ArifmTree* tree);
 ArifmTreeErrors dumpArifmTreeInConsole(const ArifmTree* tree, size_t nodeIndex,
-                                       char** outputBuffer);
+                                       char** outputBuffer, const Node2stringSettings* settings);
 ArifmTreeErrors dumpArifmTree(ArifmTree* tree);
 ArifmTreeErrors openImageOfCurrentStateArifmTree(ArifmTree* tree);
 

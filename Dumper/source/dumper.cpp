@@ -119,33 +119,39 @@ void dumperAddImgToAllLogsFile(Dumper* dumper, const char* imagePath) {
 
 static DumperErrors addNodeDumpStructToBuffer(Dumper* dumper,
                                               const Node* node,
-                                              const char* color) {
+                                              const char* color,
+                                              const DumperSettings* settings) {
     IF_ARG_NULL_RETURN(dumper);
+    IF_ARG_NULL_RETURN(settings);
     IF_ARG_NULL_RETURN(buffer);
-
-    // const size_t DATA_STRING_LEN = 50;
-    // char* dataString = (char*)calloc(DATA_STRING_LEN, sizeof(char));
-    // IF_NOT_COND_RETURN(dataString != NULL, DUMPER_ERROR_MEMORY_ALLOCATION_ERROR);
-    // const char* format = varToFormat(node->data);
-    // LOG_DEBUG_VARS(format);
-    // sprintf(dataString, format, node->data);
-    // LOG_DEBUG_VARS(dataString, node->data);
 
     memset(tmpBuffer, 0, TMP_BUFFER_SIZE);
     if (node != NULL) {
         char* nodesDataStr = NULL;
-        ARIFM_OPS_ERR_CHECK(arifmTreeNodeToString(node, &nodesDataStr));
+        ARIFM_OPS_ERR_CHECK(arifmTreeNodeToString(node, &nodesDataStr,
+                                                  &settings->node2stringSettings));
         // LOG_INFO("----------------");
         LOG_DEBUG_VARS(nodesDataStr, node->data, node->memBuffIndex);
-        snprintf(tmpBuffer, TMP_BUFFER_SIZE,
-        "iamnode_id_%zu [shape=none, margin=0, fontcolor=white, color=%s, label=< \n"
+
+        char* tmpPtr = tmpBuffer;
+        tmpPtr += snprintf(tmpPtr, TMP_BUFFER_SIZE - (tmpPtr - tmpBuffer),
+        "iamnode_id_%zu [shape=circle, margin=0, fontcolor=white, color=%s, label=< \n"
             "<TABLE cellspacing=\"0\"> \n"
-                "<TR><TD colspan=\"2\">%s</TD></TR>\n"
-                "<TR><TD colspan=\"2\">memIndex:  %zu</TD></TR>\n"
-                "<TR><TD>left:  %zu</TD>\n"
-                "<TD>right: %zu</TD></TR>\n"
-                "</TABLE> \n"
-                " >];\n", node->memBuffIndex, color, nodesDataStr, node->memBuffIndex, node->left, node->right);
+                "<TR><TD colspan=\"2\">%s</TD></TR>\n",
+                node->memBuffIndex, color, nodesDataStr);
+
+        if (settings->isMemIndexesInfoNeeded) {
+            // LOG_ERROR("bruh");
+            // exit(0);
+            tmpPtr += snprintf(tmpPtr, TMP_BUFFER_SIZE - (tmpPtr - tmpBuffer),
+                    "<TR><TD colspan=\"2\">memIndex:  %zu</TD></TR>\n"
+                    "<TR><TD>left:  %zu</TD>\n"
+                    "<TD>right: %zu</TD></TR>\n",
+                    node->memBuffIndex, node->left, node->right);
+        }
+
+        tmpPtr += snprintf(tmpPtr, TMP_BUFFER_SIZE - (tmpPtr - tmpBuffer),"</TABLE> \n" " >];\n");
+
         FREE(nodesDataStr);
         // LOG_DEBUG_VARS(tmpBuffer, node->data);
     } else {
@@ -160,8 +166,10 @@ static DumperErrors addNodeDumpStructToBuffer(Dumper* dumper,
 }
 
 DumperErrors dumperDumpSingleTreeNode(Dumper* dumper,
-                                      const Node* node, const char* nodeColor) {
+                                      const Node* node, const char* nodeColor,
+                                      const DumperSettings* settings) {
     IF_ARG_NULL_RETURN(dumper);
+    IF_ARG_NULL_RETURN(settings);
 
     LOG_DEBUG("single node dumping ---------------------");
     ++dumper->numberOfLogsBefore;
@@ -186,7 +194,7 @@ DumperErrors dumperDumpSingleTreeNode(Dumper* dumper,
         pad=0.2\n\
     ", BUFFER_SIZE);
 
-    IF_ERR_RETURN(addNodeDumpStructToBuffer(dumper, node, nodeColor));
+    IF_ERR_RETURN(addNodeDumpStructToBuffer(dumper, node, nodeColor, settings));
     strncat(buffer, "}\n", BUFFER_SIZE);
     fprintf(outputFile, buffer);
     fclose(outputFile);
@@ -211,15 +219,16 @@ DumperErrors dumperDumpSingleTreeNode(Dumper* dumper,
 
 static const char*  DEFAULT_COLOR = "white";
 
-static const char* getNodeColor(const Node* node, const NodesWithColor* coloringRule, size_t coloringRuleLen) {
-    assert(node            != NULL);
-    assert(coloringRule    != NULL);
-    assert(coloringRuleLen  < MAX_COLORING_RULE_LEN);
+static const char* getNodeColor(const Node* node, const DumperSettings* settings) {
+    assert(node                      != NULL);
+    assert(settings                  != NULL);
+    assert(settings->coloringRule    != NULL);
+    assert(settings->coloringRuleLen  < MAX_COLORING_RULE_LEN);
 
-    for (size_t arrInd = 0; arrInd < coloringRuleLen; ++arrInd) {
-        const char* color = coloringRule[arrInd].color;
-        size_t*     nodes = coloringRule[arrInd].nodes;
-        size_t   nodesLen = coloringRule[arrInd].numOfNodes;
+    for (size_t arrInd = 0; arrInd < settings->coloringRuleLen; ++arrInd) {
+        const char* color = settings->coloringRule[arrInd].color;
+        size_t*     nodes = settings->coloringRule[arrInd].nodes;
+        size_t   nodesLen = settings->coloringRule[arrInd].numOfNodes;
 
         for (size_t nodeArrInd = 0; nodeArrInd < nodesLen; ++nodeArrInd) {
             size_t nodeInd = nodes[nodeArrInd];
@@ -234,11 +243,10 @@ static const char* getNodeColor(const Node* node, const NodesWithColor* coloring
 
 static DumperErrors drawArifmTreeRecursively(Dumper* dumper, const ArifmTree* tree,
                                              size_t nodeInd, size_t parentInd,
-                                             const NodesWithColor* coloringRule,
-                                             size_t coloringRuleLen) {
+                                             const DumperSettings* settings) {
     IF_ARG_NULL_RETURN(dumper);
     IF_ARG_NULL_RETURN(tree);
-    IF_ARG_NULL_RETURN(coloringRule);
+    IF_ARG_NULL_RETURN(settings);
 
     if (nodeInd == 0) // subtree is empty
         return DUMPER_STATUS_OK;
@@ -246,8 +254,8 @@ static DumperErrors drawArifmTreeRecursively(Dumper* dumper, const ArifmTree* tr
     assert(nodeInd < tree->memBuffSize);
     Node node = tree->memBuff[nodeInd];
 
-    const char* color = getNodeColor(&node, coloringRule, coloringRuleLen);
-    IF_ERR_RETURN(addNodeDumpStructToBuffer(dumper, &node, color));
+    const char* color = getNodeColor(&node, settings);
+    IF_ERR_RETURN(addNodeDumpStructToBuffer(dumper, &node, color, settings));
 
     if (parentInd != 0) {
         memset(tmpBuffer, 0, TMP_BUFFER_SIZE);
@@ -268,8 +276,8 @@ static DumperErrors drawArifmTreeRecursively(Dumper* dumper, const ArifmTree* tr
         strncat(buffer, tmpBuffer, BUFFER_SIZE);
     }
 
-    IF_ERR_RETURN(drawArifmTreeRecursively(dumper, tree, node.left , nodeInd, coloringRule, coloringRuleLen));
-    IF_ERR_RETURN(drawArifmTreeRecursively(dumper, tree, node.right, nodeInd, coloringRule, coloringRuleLen));
+    IF_ERR_RETURN(drawArifmTreeRecursively(dumper, tree, node.left,  nodeInd, settings));
+    IF_ERR_RETURN(drawArifmTreeRecursively(dumper, tree, node.right, nodeInd, settings));
 
     return DUMPER_STATUS_OK;
 }
@@ -287,10 +295,12 @@ char* getLastImageFileName(const Dumper* dumper) {
     return tmpBuffer;
 }
 
+
+
 DumperErrors dumperDumpArifmTree(Dumper* dumper, const ArifmTree* tree,
-                                 const NodesWithColor* coloringRule,
-                                 size_t coloringRuleLen) {
+                                 const DumperSettings* settings) {
     IF_ARG_NULL_RETURN(dumper);
+    IF_ARG_NULL_RETURN(settings);
     IF_ARG_NULL_RETURN(tree);
 
     LOG_DEBUG("typical binary tree dumping ---------------------");
@@ -311,14 +321,14 @@ DumperErrors dumperDumpArifmTree(Dumper* dumper, const ArifmTree* tree,
 
     memset(buffer, 0, BUFFER_SIZE);
     // FIXME: add errors check
-    strncat(buffer, "digraph html {\n\
-        overlap=false\n\
-        bgcolor=\"black\"\n\
-        rankdir=TB\n\
-        pad=0.2\n\
-    ", BUFFER_SIZE);
+    strncat(buffer,
+        "digraph html {\n"
+        "overlap=false\n"
+        "bgcolor=\"black\"\n"
+        "rankdir=TB\n"
+        "pad=0.2\n", BUFFER_SIZE);
 
-    IF_ERR_RETURN(drawArifmTreeRecursively(dumper, tree, tree->root, 0, coloringRule, coloringRuleLen));
+    IF_ERR_RETURN(drawArifmTreeRecursively(dumper, tree, tree->root, 0, settings));
 
     strncat(buffer, "}\n", BUFFER_SIZE);
     //LOG_DEBUG_VARS(buffer);

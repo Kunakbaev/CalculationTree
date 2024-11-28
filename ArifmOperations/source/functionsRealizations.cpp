@@ -25,8 +25,9 @@ static double ctan(double x) {
 }
 
 // ASK: what to do with division? no error check :(
-#define ARIFM_OPP_INFIX_FUNC(operand, command, _, __)   \
+#define ARIFM_OPP_INFIX_FUNC(operand, command, _, __, ...)   \
     double command##Func(double a, double b) {      \
+        __VA_ARGS__                                 \
         return a operand b;                         \
     }                                               \
 
@@ -36,8 +37,9 @@ static double ctan(double x) {
         return command(b);                     \
     }                                               \
 
-#define ARIFM_OPP_BINARY_FUNC(_, command, __, ___)           \
+#define ARIFM_OPP_BINARY_FUNC(_, command, __, ___, ...)           \
     double command##Func(double a, double b) {      \
+        __VA_ARGS__                                 \
         return command(a, b);                     \
     }                                               \
 

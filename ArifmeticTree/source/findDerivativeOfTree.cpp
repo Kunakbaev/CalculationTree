@@ -47,7 +47,10 @@ ArifmTreeErrors getDerivativeOfTree(ArifmTree* source, ArifmTree* dest) {
     char* output = (char*)calloc(2000, sizeof(char));
     assert(output != NULL);
     char* ptr = output;
-    IF_ERR_RETURN(dumpArifmTreeInConsole(dest, dest->root, &ptr));
+    Node2stringSettings nodeDumpSettings = {
+        false, false, false
+    };
+    IF_ERR_RETURN(dumpArifmTreeInConsole(dest, dest->root, &ptr, &nodeDumpSettings));
     LOG_DEBUG_VARS(output);
     FREE(output);
 

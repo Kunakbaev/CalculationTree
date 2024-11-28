@@ -6,11 +6,19 @@
 #include "../../ArifmeticTree/include/arifmTreeNodeStruct.hpp"
 #include "functionsRealizations.hpp"
 
+struct Node2stringSettings {
+    bool isNodeTypeNeeded;
+    bool isFuncTypeNeeded;
+    bool isBracketsNeeded;
+};
+
 ArifmOperationsErrors validateArifmOperationsArrays();
 ArifmOperationsErrors initArifmTreeNodeWithString(Node* node, const char* line);
 ArifmOperationsErrors getFuncByIndex(size_t funcIndex, Function* func);
-ArifmOperationsErrors arifmTreeNodeDataToString(const Node* node, char** result);
-ArifmOperationsErrors arifmTreeNodeToString(const Node* node, char** result);
+ArifmOperationsErrors arifmTreeNodeDataToString(const Node* node, char** result,
+                                                bool isFuncTypeNeeded);
+ArifmOperationsErrors arifmTreeNodeToString(const Node* node, char** result,
+                                            const Node2stringSettings* settings);
 ArifmOperationsErrors getNodeLatexString(const Node* node, char* leftString, char* rightString, char** result);
 const char* getArifmTreeNodeType(const Node* node);
 bool isNeedForBrackets(const Node* parent, const Node* cur, bool isLeftSon);

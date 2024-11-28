@@ -1,6 +1,7 @@
 #include <ctype.h>
 
 #include "../include/commonFileStart.hpp"
+#include "../include/assingParents.hpp"
 
 static ArifmTreeErrors simplifyNoVarsSubtree(ArifmTree* tree, size_t newLeftNode, size_t newRightNode,
                                              const Function* func, size_t* resultNodeInd) {
@@ -13,6 +14,18 @@ static ArifmTreeErrors simplifyNoVarsSubtree(ArifmTree* tree, size_t newLeftNode
                                                     {.doubleData = calcRes}, 0, 0);
     return ARIFM_TREE_STATUS_OK;
 }
+//
+// static ArifmTreeErrors simplificationWithRightSonLeft(ArifmTree* tree, size_t* resultNodeInd, bool* wasVariable,
+//                                                       bool wasVarInLeft, double one, size_t newLeftNode,
+//                                                       bool wasVarInRight, double two, size_t newRightNode,
+//                                                       FunctionsNames funcName) {
+//     *wasVariable = wasVarInRight;
+//     *resultNodeInd = newLeftNode;
+//
+//     if (funcName == ELEM_FUNC_POW) {
+//
+//     }
+// }
 
 static ArifmTreeErrors simplifyTreeRecursive(ArifmTree* tree, size_t nodeInd, size_t* resultNodeInd, bool* wasVariable) {
     IF_ARG_NULL_RETURN(tree);
@@ -96,7 +109,7 @@ static ArifmTreeErrors simplifyTreeRecursive(ArifmTree* tree, size_t nodeInd, si
             return ARIFM_TREE_STATUS_OK;
         }
         if (one == 0 && !wasVarInLeft) {
-            *wasVariable = wasVarInRight;
+            *wasVariable = false;
             *resultNodeInd = constructNodeWithKidsNoErrors(tree, ARIFM_TREE_NUMBER_NODE,
                                                            {.doubleData = 0}, 0, 0);
             return ARIFM_TREE_STATUS_OK;
@@ -110,13 +123,13 @@ static ArifmTreeErrors simplifyTreeRecursive(ArifmTree* tree, size_t nodeInd, si
     if (func.name == ELEM_FUNC_POW) {
         if ((one == 1 && !wasVarInLeft) ||
             (two == 0 && !wasVarInRight)) {
-            //wasVariable = ;
+            *wasVariable = false;
             *resultNodeInd = constructNodeWithKidsNoErrors(tree, ARIFM_TREE_NUMBER_NODE,
                                                            {.doubleData = 1}, 0, 0);
             return ARIFM_TREE_STATUS_OK;
         }
         if (two == 1 && !wasVarInRight) {
-            *wasVariable = wasVarInRight;
+            *wasVariable = wasVarInLeft;
             *resultNodeInd = newLeftNode;
             return ARIFM_TREE_STATUS_OK;
         }
@@ -128,15 +141,12 @@ static ArifmTreeErrors simplifyTreeRecursive(ArifmTree* tree, size_t nodeInd, si
         }
     }
 
-    LOG_ERROR("---fdddd");
     *resultNodeInd = constructNodeWithKidsNoErrors(tree, node.nodeType,
                                                    {.data=node.data}, newLeftNode, newRightNode);
     tree->memBuff[*resultNodeInd].doubleData = node.doubleData;
 
     return ARIFM_TREE_STATUS_OK;
 }
-
-#include "../include/assingParents.hpp"
 
 ArifmTreeErrors simplifyTree(ArifmTree* tree) {
     IF_ARG_NULL_RETURN(tree);
