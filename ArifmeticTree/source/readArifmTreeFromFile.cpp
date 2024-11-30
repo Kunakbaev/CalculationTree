@@ -86,11 +86,11 @@ static ArifmTreeErrors linkNewNodeToParent(ArifmTree* tree, size_t parentInd, bo
     IF_ERR_RETURN(getNewNode(tree, newNodeInd));
     if (tree->root == 0) // tree is empty
         tree->root = *newNodeInd;
-    Node* node = &tree->memBuff[*newNodeInd];
+    Node* node = getArifmTreeNodePtr(tree, *newNodeInd);
 
     if (parentInd != 0) {
         node->parent = parentInd;
-        Node* parent = &tree->memBuff[parentInd];
+        Node* parent = getArifmTreeNodePtr(tree, parentInd);
         if (isLeftSon)
             parent->left  = *newNodeInd;
         else

@@ -5,8 +5,8 @@
 
 static ArifmTreeErrors simplifyNoVarsSubtree(ArifmTree* tree, size_t newLeftNode, size_t newRightNode,
                                              const Function* func, size_t* resultNodeInd) {
-    double one = tree->memBuff[newLeftNode]. doubleData;
-    double two = tree->memBuff[newRightNode].doubleData;
+    double one = getArifmTreeNodePtr(tree,  newLeftNode)->doubleData;
+    double two = getArifmTreeNodePtr(tree, newRightNode)->doubleData;
     double calcRes = (*func->calculationFunc)(one, two);
     LOG_DEBUG_VARS(one, two, calcRes, func->name);
 
@@ -14,29 +14,18 @@ static ArifmTreeErrors simplifyNoVarsSubtree(ArifmTree* tree, size_t newLeftNode
                                                     {.doubleData = calcRes}, 0, 0);
     return ARIFM_TREE_STATUS_OK;
 }
-//
-// static ArifmTreeErrors simplificationWithRightSonLeft(ArifmTree* tree, size_t* resultNodeInd, bool* wasVariable,
-//                                                       bool wasVarInLeft, double one, size_t newLeftNode,
-//                                                       bool wasVarInRight, double two, size_t newRightNode,
-//                                                       FunctionsNames funcName) {
-//     *wasVariable = wasVarInRight;
-//     *resultNodeInd = newLeftNode;
-//
-//     if (funcName == ELEM_FUNC_POW) {
-//
-//     }
-// }
 
 static ArifmTreeErrors simplifyTreeRecursive(ArifmTree* tree, size_t nodeInd, size_t* resultNodeInd,
                                              bool* wasVariable, bool* wasSimplification) {
+    if (!nodeInd)
+        return ARIFM_TREE_STATUS_OK;
+
     IF_ARG_NULL_RETURN(tree);
     IF_ARG_NULL_RETURN(wasVariable);
     IF_ARG_NULL_RETURN(wasSimplification);
     IF_ARG_NULL_RETURN(resultNodeInd);
-    IF_NOT_COND_RETURN(nodeInd <= tree->freeNodeIndex,
-                       ARIFM_TREE_INVALID_ARGUMENT);
 
-    Node node = tree->memBuff[nodeInd];
+    Node node = *getArifmTreeNodePtr(tree, nodeInd);
     size_t newLeftNode   = 0;
     size_t newRightNode  = 0;
     bool   wasVarInLeft  = false;
@@ -48,18 +37,15 @@ static ArifmTreeErrors simplifyTreeRecursive(ArifmTree* tree, size_t nodeInd, si
         return ARIFM_TREE_STATUS_OK;
     }
 
-    if (node.left != 0) {
-        IF_ERR_RETURN(simplifyTreeRecursive(tree, node.left,  &newLeftNode,  &wasVarInLeft, wasSimplification));
-    }
-    if (node.right != 0) {
-        IF_ERR_RETURN(simplifyTreeRecursive(tree, node.right, &newRightNode, &wasVarInRight, wasSimplification));
-    }
+    IF_ERR_RETURN(simplifyTreeRecursive(tree, node.left,  &newLeftNode,  &wasVarInLeft,  wasSimplification));
+    IF_ERR_RETURN(simplifyTreeRecursive(tree, node.right, &newRightNode, &wasVarInRight, wasSimplification));
 
     Function func = {};
     ARIFM_OPS_ERR_CHECK(getFuncByIndex(node.data, &func));
-    double one = tree->memBuff[newLeftNode]. doubleData;
-    double two = tree->memBuff[newRightNode].doubleData;
+    double one = getArifmTreeNodePtr(tree, newLeftNode) ->doubleData;
+    double two = getArifmTreeNodePtr(tree, newRightNode)->doubleData;
 
+    // FIXME: move to arifm ops/simplificatorFuncs.hpp
     #define REDUCE_TO_CONST_AND_RETURN(number)                                                  \
         do {                                                                                    \
             *wasSimplification = true;                                                          \
@@ -123,7 +109,7 @@ static ArifmTreeErrors simplifyTreeRecursive(ArifmTree* tree, size_t nodeInd, si
     *wasVariable = wasVarInLeft | wasVarInRight;
     *resultNodeInd = constructNodeWithKidsNoErrors(tree, node.nodeType,
                                                    {.data=node.data}, newLeftNode, newRightNode);
-    tree->memBuff[*resultNodeInd].doubleData = node.doubleData;
+    getArifmTreeNodePtr(tree, *resultNodeInd)->doubleData = node.doubleData;
 
     return ARIFM_TREE_STATUS_OK;
 }

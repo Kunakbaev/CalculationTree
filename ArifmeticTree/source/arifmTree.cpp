@@ -38,7 +38,7 @@ static void initMemBuff(ArifmTree* tree) {
     }
 }
 
-ArifmTreeErrors constructArifmTree(ArifmTree* tree, Dumper* dumper) {
+ArifmTreeErrors constructArifmTree(ArifmTree* tree, const Dumper* dumper) {
     IF_ARG_NULL_RETURN(tree);
     IF_ARG_NULL_RETURN(dumper);
 
@@ -88,7 +88,7 @@ ArifmTreeErrors constructNodeWithKids(ArifmTree* tree, size_t* newNodeInd, TreeN
     IF_ARG_NULL_RETURN(tree);
 
     IF_ERR_RETURN(getNewNode(tree, newNodeInd));
-    Node* node = &tree->memBuff[*newNodeInd];
+    Node* node = getArifmTreeNodePtr(tree, *newNodeInd);
 
     IF_ERR_RETURN(constructNode(tree, node, nodeType, data));
     node->left  = leftSon;
@@ -102,7 +102,7 @@ size_t constructNodeWithKidsNoErrors(ArifmTree* tree, TreeNodeType nodeType, con
     ArifmTreeErrors error = ARIFM_TREE_STATUS_OK;
     error = getNewNode(tree, &newNodeInd);
     assert(error == ARIFM_TREE_STATUS_OK);
-    Node* node = &tree->memBuff[newNodeInd];
+    Node* node = getArifmTreeNodePtr(tree, newNodeInd);
 
     error = constructNode(tree, node, nodeType, data);
     assert(error == ARIFM_TREE_STATUS_OK);
@@ -164,15 +164,12 @@ ArifmTreeErrors getNewNode(ArifmTree* tree, size_t* newNodeIndex) {
     return ARIFM_TREE_STATUS_OK;
 }
 
-ArifmTreeErrors getArifmTreeNodeByVertIndex(const ArifmTree* tree, size_t vertInd, Node* result) {
-    IF_ARG_NULL_RETURN(tree);
-    IF_ARG_NULL_RETURN(result);
-    IF_NOT_COND_RETURN(vertInd < tree->memBuffSize,
-                       ARIFM_TREE_INVALID_ARGUMENT); // TODO: add error
+Node* getArifmTreeNodePtr(const ArifmTree* tree, size_t nodeInd) {
+    assert(tree    != NULL);
+    assert(nodeInd <= tree->freeNodeIndex);
+    assert(nodeInd != 0);
 
-    *result = tree->memBuff[vertInd];
-
-    return ARIFM_TREE_STATUS_OK;
+    return &tree->memBuff[nodeInd];
 }
 
 #include "readArifmTreeFromFile.cpp"
@@ -195,8 +192,7 @@ ArifmTreeErrors dumpArifmTreeInConsole(const ArifmTree* tree, size_t nodeIndex,
     strncat(*outputBuffer, "(", OUTPUT_BUFFER_SIZE);
     ++(*outputBuffer);
 
-    assert(nodeIndex < tree->memBuffSize);
-    Node node = tree->memBuff[nodeIndex];
+    Node node = *getArifmTreeNodePtr(tree, nodeIndex);
     IF_ERR_RETURN(dumpArifmTreeInConsole(tree, node.left, outputBuffer, settings));
 
     char* nodeDataString = NULL;
@@ -232,7 +228,7 @@ ArifmTreeErrors dumpArifmTree(ArifmTree* tree) {
     size_t diffNodeTypes[3][MAX_NUM_OF_NODES_IN_ONE_COLOR_WITH_NODES_STRUCT] = {};
     size_t diffNodeTypesPtr[3] = {};
     for (size_t nodeInd = 0; nodeInd < tree->memBuffSize; ++nodeInd) {
-        Node node = tree->memBuff[nodeInd];
+        Node node = *getArifmTreeNodePtr(tree, nodeInd);
         char* data = NULL;
         ARIFM_OPS_ERR_CHECK(arifmTreeNodeToString(&node, &data, &nodeSettings));
 
@@ -280,7 +276,7 @@ ArifmTreeErrors dumpArifmTree(ArifmTree* tree) {
         rule1, rule4nums, rule4vars, rule4funcs
     };
     // Node2stringSettings nodeDumpSettings = {
-    //     true, true, true,
+    //     true, true, false,
     // };
     Node2stringSettings nodeDumpSettings = {
         false, false, false,
@@ -316,11 +312,8 @@ ArifmTreeErrors openImageOfCurrentStateArifmTree(ArifmTree* tree) {
 
 static ArifmTreeErrors checkIfValidParent(const ArifmTree* tree, size_t nodeInd) {
     IF_ARG_NULL_RETURN(tree);
-    IF_NOT_COND_RETURN(nodeInd != 0, ARIFM_TREE_INVALID_ARGUMENT);
-    IF_NOT_COND_RETURN(nodeInd <= tree->freeNodeIndex,
-                       ARIFM_TREE_INVALID_ARGUMENT);
 
-    size_t parentInd = tree->memBuff[nodeInd].parent;
+    size_t parentInd = getArifmTreeNodePtr(tree, nodeInd)->parent;
     IF_NOT_COND_RETURN(parentInd <= tree->freeNodeIndex,
                        ARIFM_TREE_BAD_PARENT_NODE);
     //LOG_DEBUG_VARS(parentInd, tree->root, nodeInd);
@@ -329,7 +322,7 @@ static ArifmTreeErrors checkIfValidParent(const ArifmTree* tree, size_t nodeInd)
         return ARIFM_TREE_STATUS_OK;
     }
 
-    Node parent = tree->memBuff[parentInd];
+    Node parent = *getArifmTreeNodePtr(tree, parentInd);
     IF_NOT_COND_RETURN(parentInd != 0,
                        ARIFM_TREE_BAD_PARENT_NODE);
     //LOG_DEBUG_VARS(parent.left, parent.right);
@@ -365,7 +358,7 @@ ArifmTreeErrors validateArifmTree(const ArifmTree* tree) {
         return ARIFM_TREE_STATUS_OK;
 
     for (size_t nodeInd = 1; nodeInd <= tree->freeNodeIndex; ++nodeInd) {
-        Node node = tree->memBuff[nodeInd];
+        Node node = *getArifmTreeNodePtr(tree, nodeInd);
         LOG_DEBUG_VARS(nodeInd);
 
         IF_ERR_RETURN(checkIfValidParent(tree, nodeInd));

@@ -17,12 +17,13 @@
     } while(0)
 
 int main() {
-    // setLoggingLevel(DEBUG);
+    setLoggingLevel(DEBUG);
 
     LOG_DEBUG("Hello world!");
 
     Dumper dumper = {};
-    dumperConstructor(&dumper, 10, "logs", "png");
+    dumperConstructor(&dumper, 10, "logs", "png"); // referece_count: ctor +1
+                                                   //                 dtor -1, if (0) -> free
 
     ArifmTree tree = {};
     IF_MAIN_ARIFM_TREE_ERR_RETURN(constructArifmTree(&tree, &dumper));

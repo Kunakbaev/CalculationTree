@@ -1,9 +1,7 @@
 (2)/(x)
 ((tan(x))/(tan(x)))*(tan(x))
 
-
-
-
+((tan(x))/(tan(x)))*(tan(x))
 (2)/(x)
 ((x)*(0))+(x)
 ((tan(x))/(tan(x)))*(tan(x))

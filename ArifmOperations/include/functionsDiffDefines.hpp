@@ -1,31 +1,40 @@
 #ifndef ARIFM_OPERATIONS_INCLUDE_FUNCTIONS_DIFF_DEFINES_HPP
 #define ARIFM_OPERATIONS_INCLUDE_FUNCTIONS_DIFF_DEFINES_HPP
 
-static size_t getCopyNodeInd(const ArifmTree* tree, ArifmTree* destTree, size_t srcNodeInd) {
+static size_t getCopyNodeInd(const ArifmTree* tree, ArifmTree* destTree,
+                             size_t srcNodeInd, size_t parentInd, bool isLeftSon) {
+    if (!srcNodeInd)
+        return 0;
+
+    assert(tree     != NULL);
+    assert(destTree != NULL);
+
     size_t dest = 0;
     IF_ERR_RETURN(getNewNode(destTree, &dest));
-    Node* node = &destTree->memBuff[dest];
-    Node   old = tree->memBuff[srcNodeInd];
+    Node* node = getArifmTreeNodePtr(destTree, dest);
+    Node   old = *getArifmTreeNodePtr(tree, srcNodeInd);
+    LOG_DEBUG_VARS(old.data, old.nodeType, old.memBuffIndex);
 
     node->nodeType   = old.nodeType;
     node->data       = old.data;
     node->doubleData = old.doubleData;
 
-    if (old.left != 0) {
-        size_t res = getCopyNodeInd(tree, destTree, old.left);
-        node = &destTree->memBuff[dest];
-        node->left = res;
+    if (parentInd != 0) {
+        Node* parent = getArifmTreeNodePtr(destTree, parentInd);
+        if (isLeftSon)
+            parent->left  = dest;
+        else
+            parent->right = dest;
     }
-    if (old.right != 0) {
-        size_t res = getCopyNodeInd(tree, destTree, old.right);
-        node = &destTree->memBuff[dest];
-        node->right = res;
-    }
+
+    // FIXME: кажется копипаст, переписать. Выполнять для себя, вызывать для детей
+    getCopyNodeInd(tree, destTree, old.left,  dest, true);
+    getCopyNodeInd(tree, destTree, old.right, dest, false);
 
     return dest;
 }
 
-#define COPY(srcNodeInd) getCopyNodeInd(tree, destTree, srcNodeInd)
+#define COPY(srcNodeInd) getCopyNodeInd(tree, destTree, srcNodeInd, 0, false)
 
 #define NEW_NUM_NODE(data) \
     constructNodeWithKidsNoErrors(destTree, NUM, {.doubleData = data}, 0, 0)
@@ -65,8 +74,6 @@ static size_t getCopyNodeInd(const ArifmTree* tree, ArifmTree* destTree, size_t 
                     NEW_MUL_NODE(COPY(left), DIFF(right))                       \
                 );                                                              \
     } while (0)
-
-#define DIV
 
 #define DIV(left, right)                                                        \
     do {                                                                        \

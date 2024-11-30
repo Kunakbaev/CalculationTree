@@ -253,8 +253,7 @@ static DumperErrors drawArifmTreeRecursively(Dumper* dumper, const ArifmTree* tr
     if (nodeInd == 0) // subtree is empty
         return DUMPER_STATUS_OK;
 
-    assert(nodeInd < tree->memBuffSize);
-    Node node = tree->memBuff[nodeInd];
+    Node node = *getArifmTreeNodePtr(tree, nodeInd);
 
     const char* borderColor = NULL;
     const char* color = getNodeColor(&node, settings, &borderColor);
@@ -263,8 +262,7 @@ static DumperErrors drawArifmTreeRecursively(Dumper* dumper, const ArifmTree* tr
     if (parentInd != 0) {
         memset(tmpBuffer, 0, TMP_BUFFER_SIZE);
 
-        assert(parentInd < tree->memBuffSize);
-        Node parent = tree->memBuff[parentInd];
+        Node parent = *getArifmTreeNodePtr(tree, parentInd);
         if (nodeInd == parent.left) {
             snprintf(tmpBuffer, TMP_BUFFER_SIZE, "iamnode_id_%zu -> iamnode_id_%zu [color=orange, fontcolor=white, weight=1]\n",
                 parentInd, nodeInd);
@@ -275,7 +273,7 @@ static DumperErrors drawArifmTreeRecursively(Dumper* dumper, const ArifmTree* tr
 
         size_t tmpBuffLen = strlen(tmpBuffer);
         snprintf(tmpBuffer + tmpBuffLen, TMP_BUFFER_SIZE - tmpBuffLen, "iamnode_id_%zu -> iamnode_id_%zu [color=purple, fontcolor=white]\n",
-                nodeInd, tree->memBuff[nodeInd].parent);
+                nodeInd, parentInd);
         strncat(buffer, tmpBuffer, BUFFER_SIZE);
     }
 
@@ -309,7 +307,6 @@ DumperErrors dumperDumpArifmTree(Dumper* dumper, const ArifmTree* tree,
     LOG_DEBUG("typical binary tree dumping ---------------------");
     ++dumper->numberOfLogsBefore;
     memset(fileNameBuffer, 0, FILE_NAME_BUFFER_SIZE);
-    // TODO: rewrite with snprintf
     snprintf(fileNameBuffer, FILE_NAME_BUFFER_SIZE, "dots/%zu_list.dot",
              dumper->numberOfLogsBefore);
 

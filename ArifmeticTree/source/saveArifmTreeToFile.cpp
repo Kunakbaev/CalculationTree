@@ -2,13 +2,11 @@
 
 #include "../include/commonFileStart.hpp"
 
-static ArifmTreeErrors recursiveTreeSaveToFile(ArifmTree* tree, size_t nodeInd, size_t parentInd, char** buffer) {
+static ArifmTreeErrors recursiveTreeSaveToFile(const ArifmTree* tree, size_t nodeInd, size_t parentInd, char** buffer) {
     IF_ARG_NULL_RETURN(tree);
     IF_ARG_NULL_RETURN(buffer);
-    IF_NOT_COND_RETURN(nodeInd < tree->memBuffSize,
-                       ARIFM_TREE_INVALID_ARGUMENT);
 
-    Node node = tree->memBuff[nodeInd];
+    Node node = *getArifmTreeNodePtr(tree, nodeInd);
 
     // ASK: how to make this strings not NULL, but to still be able to free them
     char* leftSonString  = "";
@@ -29,19 +27,22 @@ static ArifmTreeErrors recursiveTreeSaveToFile(ArifmTree* tree, size_t nodeInd, 
         FREE(rightSonString);
     LOG_DEBUG_VARS(*buffer);
 
-    if (parentInd != 0) {
-        assert(parentInd < tree->memBuffSize);
-        Node parent = tree->memBuff[parentInd];
-        bool isLeftSon = nodeInd == parent.left;
-        if (isNeedForBrackets(&parent, &node, isLeftSon)) {
-            char* tmp = (char*)calloc(strlen(*buffer) + 2 + 1, sizeof(char));
-            IF_NOT_COND_RETURN(tmp != NULL, ARIFM_TREE_MEMORY_ALLOCATION_ERROR);
+    if (parentInd == 0)
+        return ARIFM_TREE_STATUS_OK;
 
-            sprintf(tmp, "(%s)", *buffer);
-            FREE(*buffer);
-            *buffer = tmp;
-            LOG_DEBUG_VARS(*buffer);
-        }
+    Node parent = *getArifmTreeNodePtr(tree, parentInd);
+    bool isLeftSon = nodeInd == parent.left;
+    if (isNeedForBrackets(&parent, &node, isLeftSon)) {
+        const char* leftBracket  = "\\left(";
+        const char* rightBracket = "\\right)";
+        char* tmp = (char*)calloc(strlen(*buffer) +
+                                    strlen(leftBracket) + strlen(rightBracket) + 1, sizeof(char));
+        IF_NOT_COND_RETURN(tmp != NULL, ARIFM_TREE_MEMORY_ALLOCATION_ERROR);
+
+        sprintf(tmp, "%s%s%s", leftBracket, *buffer, rightBracket);
+        FREE(*buffer);
+        *buffer = tmp;
+        LOG_DEBUG_VARS(*buffer);
     }
 
     return ARIFM_TREE_STATUS_OK;
@@ -57,10 +58,10 @@ static void saveTexBufferToFile(const char* fileName) {
     system(tmp);
 }
 
-ArifmTreeErrors saveArifmTreeToFile(ArifmTree* tree, const char* fileName) {
+ArifmTreeErrors saveArifmTreeToFile(const ArifmTree* tree, const char* fileName) {
     IF_ARG_NULL_RETURN(tree);
 
-    const size_t TMP_BUFF_SIZE = 100;
+    const size_t TMP_BUFF_SIZE = 300;
     char tmp[TMP_BUFF_SIZE] = {};
     snprintf(tmp, TMP_BUFF_SIZE, "latexPdfs/%s", fileName);
     FILE* file = fopen(tmp, "w");
@@ -75,7 +76,7 @@ ArifmTreeErrors saveArifmTreeToFile(ArifmTree* tree, const char* fileName) {
         "\\begin{document}\n"
         "$%s$\n"
         "\\end{document}\n",
-    buffer);
+        buffer);
     fclose(file);
     FREE(buffer);
 

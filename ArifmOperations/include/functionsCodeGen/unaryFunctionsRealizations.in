@@ -1,4 +1,4 @@
 ARIFM_OPP_UNARY_FUNC(cos,       cos,       COS,     "cos(%s%s)")
 ARIFM_OPP_UNARY_FUNC(sin,       sin,       SIN,     "sin(%s%s)")
-ARIFM_OPP_UNARY_FUNC(tan,       tan,       TAN,     "tan(%s%s)")
-ARIFM_OPP_UNARY_FUNC(ctan,      ctan,      CTAN,    "ctan(%s%s)")
+ARIFM_OPP_UNARY_FUNC(tan,       tan,       TAN,     "\\tan(%s%s)")
+ARIFM_OPP_UNARY_FUNC(ctan,      ctan,      CTAN,    "\\cot(%s%s)")
