@@ -26,7 +26,7 @@
     IF_ERR_RETURN(validateArifmTree(tree));
 
 
-const size_t MIN_MEM_BUFF_SIZE  = 8; // TODO: fix error with array resize
+const size_t MIN_MEM_BUFF_SIZE  = 8;
 const size_t MAX_OBJ_NAME_LEN   = 30;
 
 static void initMemBuff(ArifmTree* tree) {

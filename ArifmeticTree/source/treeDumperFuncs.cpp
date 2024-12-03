@@ -91,7 +91,6 @@ ArifmTreeErrors dumpArifmTree(ArifmTree* tree) {
 
     IF_ERR_RETURN(dumpArifmTreeInConsole(tree));
 
-    // FIXME: add dumper err check
     size_t nodesArr[MAX_NUM_OF_NODES_IN_ONE_COLOR_WITH_NODES_STRUCT] = {}; // ASK: is it ok?
     nodesArr[0] = {tree->freeNodeIndex};
     NodesWithColor rule1 = {

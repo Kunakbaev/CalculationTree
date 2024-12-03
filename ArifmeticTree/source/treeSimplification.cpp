@@ -15,6 +15,9 @@ static ArifmTreeErrors simplifyNoVarsSubtree(ArifmTree* tree, size_t newLeftNode
     return ARIFM_TREE_STATUS_OK;
 }
 
+
+#include "../../ArifmOperations/include/simplificationFuncs.hpp"
+
 static ArifmTreeErrors simplifyTreeRecursive(ArifmTree* tree, size_t nodeInd, size_t* resultNodeInd,
                                              bool* wasVariable, bool* wasSimplification) {
     if (!nodeInd)
@@ -45,66 +48,21 @@ static ArifmTreeErrors simplifyTreeRecursive(ArifmTree* tree, size_t nodeInd, si
     double one = getArifmTreeNodePtr(tree, newLeftNode) ->doubleData;
     double two = getArifmTreeNodePtr(tree, newRightNode)->doubleData;
 
-    // FIXME: move to arifm ops/simplificatorFuncs.hpp
-    #define REDUCE_TO_CONST_AND_RETURN(number)                                                  \
-        do {                                                                                    \
-            *wasSimplification = true;                                                          \
-            *wasVariable       = false;                                                         \
-            *resultNodeInd     = constructNodeWithKidsNoErrors(tree, ARIFM_TREE_NUMBER_NODE,    \
-                                                           {.doubleData = number}, 0, 0);       \
-            return ARIFM_TREE_STATUS_OK;                                                        \
-        } while (0)                                                                             \
-
-    #define LEAVE_LEFT_SON_AND_RETURN()                                                         \
-        do {                                                                                    \
-            *wasSimplification = true;                                                          \
-            *wasVariable       = wasVarInLeft;                                                  \
-            *resultNodeInd     = newLeftNode;                                                   \
-            return ARIFM_TREE_STATUS_OK;                                                        \
-        } while (0)
-
-    #define LEAVE_RIGHT_SON_AND_RETURN()                                                        \
-        do {                                                                                    \
-            *wasSimplification = true;                                                          \
-            *wasVariable   = wasVarInRight;                                                     \
-            *resultNodeInd = newRightNode;                                                      \
-            return ARIFM_TREE_STATUS_OK;                                                        \
-        } while (0)
-
-    #define IS_L_EQ2(num) (one == (num) && !wasVarInLeft)
-    #define IS_R_EQ2(num) (two == (num) && !wasVarInRight)
-
-    if (!wasVarInLeft && !wasVarInRight) {
-        double calcRes = (*func.calculationFunc)(one, two);
-        LOG_DEBUG_VARS(one, two, calcRes, func.name);
-        REDUCE_TO_CONST_AND_RETURN(calcRes);
-    }
-
     *resultNodeInd = nodeInd;
-    if (func.name == ELEM_FUNC_ADD || func.name == ELEM_FUNC_SUB) {
-        if (IS_L_EQ2(0)) LEAVE_RIGHT_SON_AND_RETURN();
-        if (IS_R_EQ2(0)) LEAVE_LEFT_SON_AND_RETURN();
-    }
 
-    if (func.name == ELEM_FUNC_MUL) {
-        if (IS_L_EQ2(1))                LEAVE_RIGHT_SON_AND_RETURN();
-        if (IS_R_EQ2(1))                LEAVE_LEFT_SON_AND_RETURN();
-        if (IS_L_EQ2(0) || IS_R_EQ2(0)) REDUCE_TO_CONST_AND_RETURN(0);
-    }
+    #define ARIFM_OPP_GENERAL_FUNC(_, __, name, ...)     \
+        case ELEM_FUNC_##name:                           \
+            name##_SIMPLIFY;                             \
+            break;
 
-    if (func.name == ELEM_FUNC_DIV) {
-        if (IS_R_EQ2(1)) LEAVE_LEFT_SON_AND_RETURN();
-        if (IS_L_EQ2(0)) REDUCE_TO_CONST_AND_RETURN(0);
-        if (IS_R_EQ2(0)) {
-            // TODO: division error
-        }
+    TRY_REDUCE_TO_CONST_RET_IF_OK;
+    switch (func.name) {
+        #include "../../ArifmOperations/include/functionsCodeGen/allFuncs.hpp"
+        default:
+            LOG_ERROR("unknown func name");
+            return ARIFM_TREE_INVALID_ARGUMENT; // TODO: add appropriate error
     }
-
-    if (func.name == ELEM_FUNC_POW) {
-        if (IS_L_EQ2(1) || IS_R_EQ2(0)) REDUCE_TO_CONST_AND_RETURN(1);
-        if (IS_R_EQ2(1))                LEAVE_LEFT_SON_AND_RETURN();
-        if (IS_L_EQ2(0))                REDUCE_TO_CONST_AND_RETURN(0);
-    }
+    #undef ARIFM_OPP_GENERAL_FUNC
 
     *wasVariable = wasVarInLeft | wasVarInRight;
     *resultNodeInd = constructNodeWithKidsNoErrors(tree, node.nodeType,
@@ -123,6 +81,8 @@ ArifmTreeErrors simplifyTree(ArifmTree* tree) {
         size_t newRoot = 0;
         wasSimplification = false;
         IF_ERR_RETURN(simplifyTreeRecursive(tree, tree->root, &newRoot, &wasVar, &wasSimplification));
+        LOG_ERROR("dfsad");
+        LOG_DEBUG_VARS(wasSimplification);
         tree->root = newRoot;
     }
 
