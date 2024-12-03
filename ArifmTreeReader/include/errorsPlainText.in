@@ -10,4 +10,4 @@ ERROR_UNPACK(FUNC_NODE_NOT_ENOUGH_ARGS, 9, "node function does not have enough a
 ERROR_UNPACK(FUNC_NODE_TOO_MANY_ARGS,  10, "node function has too many arguments.\n")
 ERROR_UNPACK(UNARY_FUNC_NODE_BAD_ARGS, 11, "bad arguments for unary node function.\n")
 ERROR_UNPACK(BAD_PARENT_NODE,          12, "node's parent index is invalid.\n")
-ERROR_UNPACK(READER_ERROR,             13, "error occured in reader submodule.\n")
+ERROR_UNPACK(ARIFM_TREE_ERROR,  13, "error occured in arifm tree submodule.\n")

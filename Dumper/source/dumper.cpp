@@ -101,14 +101,14 @@ DumperErrors dumperConstructor(Dumper* dumper,
     return DUMPER_STATUS_OK;
 }
 
-void dumperAddDebugInfoToAllLogsFile(Dumper* dumper, const char* debugInfo) {
+void dumperAddDebugInfoToAllLogsFile(const Dumper* dumper, const char* debugInfo) {
     assert(dumper    != NULL);
     assert(debugInfo != NULL);
 
     fprintf(dumper->allLogsFile, debugInfo);
 }
 
-void dumperAddImgToAllLogsFile(Dumper* dumper, const char* imagePath) {
+void dumperAddImgToAllLogsFile(const Dumper* dumper, const char* imagePath) {
     assert(dumper    != NULL);
     assert(imagePath != NULL);
 
@@ -117,7 +117,7 @@ void dumperAddImgToAllLogsFile(Dumper* dumper, const char* imagePath) {
     LOG_DEBUG("---------------");
 }
 
-static DumperErrors addNodeDumpStructToBuffer(Dumper* dumper,
+static DumperErrors addNodeDumpStructToBuffer(const Dumper* dumper,
                                               const Node* node,
                                               const char* color,
                                               const char* borderColor,
@@ -243,7 +243,7 @@ static const char* getNodeColor(const Node* node, const DumperSettings* settings
     return DEFAULT_COLOR; // maybe log error
 }
 
-static DumperErrors drawArifmTreeRecursively(Dumper* dumper, const ArifmTree* tree,
+static DumperErrors drawArifmTreeRecursively(const Dumper* dumper, const ArifmTree* tree,
                                              size_t nodeInd, size_t parentInd,
                                              const DumperSettings* settings) {
     IF_ARG_NULL_RETURN(dumper);

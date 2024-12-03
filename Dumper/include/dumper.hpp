@@ -36,8 +36,8 @@ DumperErrors dumperConstructor(Dumper* dumper,
                                size_t maxNumOfNodesToDraw,
                                const char* dirForLogsPath,
                                const char* outputFileFormat);
-void dumperAddDebugInfoToAllLogsFile(Dumper* dumper, const char* debugInfo);
-void dumperAddImgToAllLogsFile(Dumper* dumper, const char* imagePath);
+void dumperAddDebugInfoToAllLogsFile(const Dumper* dumper, const char* debugInfo);
+void dumperAddImgToAllLogsFile(const Dumper* dumper, const char* imagePath);
 DumperErrors dumperDumpSingleTreeNode(Dumper* dumper, const Node* node, const DumperSettings* settings);
 DumperErrors dumperDumpArifmTree(Dumper* dumper, const ArifmTree* tree, const DumperSettings* settings);
 char* getLastImageFileName(const Dumper* dumper);
@@ -58,7 +58,7 @@ const char* getDumperErrorMessage(DumperErrors error);
 
 #define DEBUG_MESSAGE_TO_DUMPER_ALL_LOGS_FILE(dumper, message) \
     do {\
-        dumperAddDebugInfoToAllLogsFile(dumper, "<pre style=\"color: white\">\n");\
+        dumperAddDebugInfoToAllLogsFile((const Dumper*)dumper, "<pre style=\"color: white\">\n");\
         stateLogFile((dumper)->allLogsFile);\
         LOG_DEBUG(message);\
         flushLogFile();\

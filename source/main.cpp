@@ -45,6 +45,7 @@ int main() {
 
     IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&tree));
     IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&diffTree));
+    dumperDestructor(&dumper);
 
     return 0;
 }

@@ -10,6 +10,7 @@ SOURCE_DIR		   			:= source
 ARIFM_TREE_PATH    			:= ArifmeticTree/source
 ARIFM_TREE_OPERATIONS_PATH 	:= ArifmOperations/source
 DUMPER_MODULE_PATH 			:= Dumper/source
+READER_PATH					:= ArifmTreeReader/source
 LIB_RUN_NAME       			:= arifmeticTree
 BUILD_DIR          			:= building
 LOGGER_EXT_LIB_DIR 			:= external/LoggerLib
@@ -31,6 +32,8 @@ SRC 	   		   := 						\
 	$(ARIFM_TREE_OPERATIONS_PATH)/arifmOperationsErrors.cpp\
 	$(ARIFM_TREE_OPERATIONS_PATH)/functionsRealizations.cpp\
 	$(ARIFM_TREE_OPERATIONS_PATH)/funcsToLatexString.cpp\
+	$(READER_PATH)/reader.cpp\
+	$(READER_PATH)/readerErrors.cpp\
 	$(DUMPER_MODULE_PATH)/dumper.cpp		\
 	$(SOURCE_DIR)/main.cpp					\
 
@@ -45,6 +48,9 @@ $(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.cpp | $(BUILD_DIR)
 	@$(CC) -c $< $(CFLAGS) -o $@ $(ASSERT_DEFINE)
 
 $(BUILD_DIR)/%.o: $(ARIFM_TREE_PATH)/%.cpp | $(BUILD_DIR)
+	@$(CC) -c $< $(CFLAGS) -o $@ $(ASSERT_DEFINE)
+
+$(BUILD_DIR)/%.o: $(READER_PATH)/%.cpp | $(BUILD_DIR)
 	@$(CC) -c $< $(CFLAGS) -o $@ $(ASSERT_DEFINE)
 
 $(BUILD_DIR)/%.o: $(ARIFM_TREE_OPERATIONS_PATH)/%.cpp | $(BUILD_DIR)
