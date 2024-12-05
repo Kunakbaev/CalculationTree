@@ -1,6 +1,5 @@
-((2)*((sin(x))*(cos(x))))/((cos(x))^(4))
-
 tan(x)
+((2)*((sin(x))*(cos(x))))/((cos(x))^(4))
 (cos(x))^(10)
 tan(x)
 log(2, x)

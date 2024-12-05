@@ -41,9 +41,9 @@ int main() {
     // IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&tree));
 
     ArifmTree result = {};
-    //IF_MAIN_ARIFM_TREE_ERR_RETURN(getTaylorSeriesOfTree(&tree, &result, 3, getVariableIndex('x'), 0));
-    //IF_MAIN_ARIFM_TREE_ERR_RETURN(getNthDerivativeOfTree(&tree, &result, 1));
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(getDerivativeOfTree(&tree, &result));
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(getTaylorSeriesOfTree(&tree, &result, 5, getVariableIndex('x'), 0));
+    //IF_MAIN_ARIFM_TREE_ERR_RETURN(getNthDerivativeOfTree(&tree, &result, 3));
+    //IF_MAIN_ARIFM_TREE_ERR_RETURN(getDerivativeOfTree(&tree, &result));
     //IF_MAIN_ARIFM_TREE_ERR_RETURN(simplifyTree(&result));
     IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&result));
     IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&result, "bruh.tex"));

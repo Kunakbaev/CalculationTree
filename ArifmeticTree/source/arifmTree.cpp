@@ -151,6 +151,10 @@ static ArifmTreeErrors resizeMemBuffer(ArifmTree* tree, size_t newSize) {
         node->memBuffIndex = nodeInd;
         node->nodeType = ARIFM_TREE_INVALID_NODE;
     }
+    LOG_WARNING("@@@@@@@@@@@@@@@@@@@@@@");
+
+    // for (size_t i = 0; i < newSize; ++i)
+    //     LOG_DEBUG_VARS(oldSize, newSize, tree->memBuff[i].data = 10);
 
     return ARIFM_TREE_STATUS_OK;
 }
@@ -227,10 +231,10 @@ size_t getCopyOfSubtree(const ArifmTree* tree, ArifmTree* destTree,
     node->doubleData = old.doubleData;
 
     // FIXME: кажется копипаст, переписать. Выполнять для себя, вызывать для детей
-    LOG_DEBUG_VARS(dest, tree->memBuffSize);
+    LOG_DEBUG_VARS(dest, destTree->memBuffSize);
     size_t cop  = getCopyOfSubtree(tree, destTree, old.left);
     destTree->memBuff[dest].left = cop;
-    LOG_DEBUG_VARS(dest, tree->memBuffSize, tree->memBuff[dest].right, old.right);
+    LOG_DEBUG_VARS(dest, destTree->memBuffSize, destTree->memBuff[dest].right, old.right);
     destTree->memBuff[dest].right = 0;
     cop = getCopyOfSubtree(tree, destTree, old.right);
     destTree->memBuff[dest].right = cop;

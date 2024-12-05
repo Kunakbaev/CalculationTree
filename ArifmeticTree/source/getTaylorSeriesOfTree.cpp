@@ -18,7 +18,7 @@ ArifmTreeErrors getNthDerivativeOfTree(const ArifmTree* tree, ArifmTree* result,
         IF_ERR_RETURN(getCopyOfTree(result, &copy));
         IF_ERR_RETURN(destructArifmTree(result));
         IF_ERR_RETURN(getDerivativeOfTree(&copy, result));
-        //IF_ERR_RETURN(simplifyTree(result));
+        IF_ERR_RETURN(simplifyTree(result));
         //IF_ERR_RETURN(openImageOfCurrentStateArifmTree(result));
         destructArifmTree(&copy);
     }
@@ -88,6 +88,9 @@ ArifmTreeErrors getTaylorSeriesOfTree(const ArifmTree* tree, ArifmTree* destTree
             )
         );
         destructArifmTree(&add);
+
+        // WARNING: without this line tree is too big
+        IF_ERR_RETURN(simplifyTree(destTree));
     }
 
     LOG_DEBUG_VARS(variable);

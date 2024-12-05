@@ -16,7 +16,7 @@ enum DumperErrors {
 #include "../../ArifmOperations/include/arifmOperations.hpp"
 
 const size_t MAX_COLORING_RULE_LEN                           = 20;
-const size_t MAX_NUM_OF_NODES_IN_ONE_COLOR_WITH_NODES_STRUCT = 1000;
+const size_t MAX_NUM_OF_NODES_IN_ONE_COLOR_WITH_NODES_STRUCT = 1 << 12;
 
 struct NodesWithColor {
     const char* color;

@@ -1,7 +1,7 @@
 #include "../include/commonFileStart.hpp"
 #include "../../Dumper/include/dumper.hpp"
 
-const size_t OUTPUT_BUFFER_SIZE = 1 << 11;
+const size_t OUTPUT_BUFFER_SIZE = 1 << 17;
 
 static ArifmTreeErrors dumpArifmTreeInConsoleRecursive(const ArifmTree* tree, size_t nodeIndex,
                                                        char** outputBuffer, const Node2stringSettings* settings) {
@@ -66,8 +66,8 @@ ArifmTreeErrors dumpArifmTree(ArifmTree* tree) {
     DEBUG_MESSAGE_TO_DUMPER_ALL_LOGS_FILE(tree->dumper, "arifmetic tree:\n");
 
     Node2stringSettings nodeDumpSettings = {
-        .isNodeTypeNeeded = true,
-        .isFuncTypeNeeded = true,
+        .isNodeTypeNeeded = false,
+        .isFuncTypeNeeded = false,
         .isBracketsNeeded = false,
     };
 
@@ -92,6 +92,7 @@ ArifmTreeErrors dumpArifmTree(ArifmTree* tree) {
             LOG_ERROR("-------------------------");
             LOG_DEBUG_VARS(nodeInd);
         }
+        LOG_DEBUG_VARS(diffNodeTypesPtr[node.nodeType]);
         diffNodeTypes[node.nodeType][diffNodeTypesPtr[node.nodeType]++] = nodeInd;
     }
 
@@ -125,7 +126,7 @@ ArifmTreeErrors dumpArifmTree(ArifmTree* tree) {
     DumperSettings settings = {
         .coloringRule           = coloringRule,
         .coloringRuleLen        = ARR_LEN(coloringRule),
-        .isMemIndexesInfoNeeded = true,
+        .isMemIndexesInfoNeeded = false,
         .node2stringSettings    = nodeDumpSettings,
     };
     DUMPER_ERR_CHECK(dumperDumpArifmTree(tree->dumper, tree, &settings));
