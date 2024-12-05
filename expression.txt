@@ -1,3 +1,11 @@
+((2)*((sin(x))*(cos(x))))/((cos(x))^(4))
+
+tan(x)
+(cos(x))^(10)
+tan(x)
+log(2, x)
+(2)^(x)
+tan(x)
 (2)/(x)
 ((tan(x))/(tan(x)))*(tan(x))
 

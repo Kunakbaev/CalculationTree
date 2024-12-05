@@ -51,7 +51,7 @@ ArifmTreeErrors dumpArifmTreeInConsole(const ArifmTree* tree) {
     char* targetPtr = outputBuffer;
     IF_ERR_RETURN(dumpArifmTreeInConsoleRecursive(tree, tree->root, &targetPtr, &nodeDumpSettings));
     LOG_DEBUG(outputBuffer);
-    DEBUG_MESSAGE_TO_DUMPER_ALL_LOGS_FILE(&tree->dumper, outputBuffer);
+    DEBUG_MESSAGE_TO_DUMPER_ALL_LOGS_FILE(tree->dumper, outputBuffer);
     FREE(outputBuffer);
 
     return ARIFM_TREE_STATUS_OK;
@@ -62,30 +62,36 @@ ArifmTreeErrors dumpArifmTree(ArifmTree* tree) {
 
     LOG_DEBUG("--------------------------------------\n");
     LOG_DEBUG("arifmetic tree:\n");
-    DEBUG_MESSAGE_TO_DUMPER_ALL_LOGS_FILE(&tree->dumper, "--------------------------------------\n");
-    DEBUG_MESSAGE_TO_DUMPER_ALL_LOGS_FILE(&tree->dumper, "arifmetic tree:\n");
+    DEBUG_MESSAGE_TO_DUMPER_ALL_LOGS_FILE(tree->dumper, "--------------------------------------\n");
+    DEBUG_MESSAGE_TO_DUMPER_ALL_LOGS_FILE(tree->dumper, "arifmetic tree:\n");
 
     Node2stringSettings nodeDumpSettings = {
-        .isNodeTypeNeeded = false,
-        .isFuncTypeNeeded = false,
+        .isNodeTypeNeeded = true,
+        .isFuncTypeNeeded = true,
         .isBracketsNeeded = false,
     };
 
-    size_t diffNodeTypesPtr[3] = {};
-    size_t diffNodeTypes[3][MAX_NUM_OF_NODES_IN_ONE_COLOR_WITH_NODES_STRUCT] = {};
-    for (size_t nodeInd = 0; nodeInd < tree->memBuffSize; ++nodeInd) {
+    size_t diffNodeTypesPtr[4] = {};
+    size_t diffNodeTypes[4][MAX_NUM_OF_NODES_IN_ONE_COLOR_WITH_NODES_STRUCT] = {};
+    for (size_t nodeInd = 1; nodeInd <= tree->freeNodeIndex; ++nodeInd) {
         Node node = *getArifmTreeNodePtr(tree, nodeInd);
+        if (node.nodeType == ARIFM_TREE_INVALID_NODE)
+            continue;
         char* data = NULL;
         ARIFM_OPS_ERR_CHECK(arifmTreeNodeToString(&node, &data, &nodeDumpSettings));
 
         size_t parent = node.parent;
         size_t left   = node.left;
         size_t right  = node.right;
-        LOG_DEBUG_VARS(nodeInd, data, parent, left, right);
-        DEBUG_VARS_TO_DUMPER_ALL_LOGS_FILE(&tree->dumper, nodeInd, data, parent, left, right);
+        //LOG_DEBUG_VARS(nodeInd, data, parent, left, right);
+        DEBUG_VARS_TO_DUMPER_ALL_LOGS_FILE(tree->dumper, nodeInd, data, parent, left, right);
         FREE(data);
 
-        assert(node.nodeType < 3);
+        assert(1 <= node.nodeType && node.nodeType <= 3);
+        if (node.nodeType == ARIFM_TREE_VAR_NODE) {
+            LOG_ERROR("-------------------------");
+            LOG_DEBUG_VARS(nodeInd);
+        }
         diffNodeTypes[node.nodeType][diffNodeTypesPtr[node.nodeType]++] = nodeInd;
     }
 
@@ -105,7 +111,7 @@ ArifmTreeErrors dumpArifmTree(ArifmTree* tree) {
         NodesWithColor rule4##name = {                         \
             .color       = colorVar,                           \
             .borderColor = borderColorVar,                     \
-            .numOfNodes  = ARR_LEN(diffNodeTypes[ind]),        \
+            .numOfNodes  = diffNodeTypesPtr[ind],              \
             .nodes       = diffNodeTypes[ind],                 \
         }                                                      \
 
@@ -119,10 +125,10 @@ ArifmTreeErrors dumpArifmTree(ArifmTree* tree) {
     DumperSettings settings = {
         .coloringRule           = coloringRule,
         .coloringRuleLen        = ARR_LEN(coloringRule),
-        .isMemIndexesInfoNeeded = false,
+        .isMemIndexesInfoNeeded = true,
         .node2stringSettings    = nodeDumpSettings,
     };
-    DUMPER_ERR_CHECK(dumperDumpArifmTree(&tree->dumper, tree, &settings));
+    DUMPER_ERR_CHECK(dumperDumpArifmTree(tree->dumper, tree, &settings));
 
     return ARIFM_TREE_STATUS_OK;
 }
@@ -130,12 +136,13 @@ ArifmTreeErrors dumpArifmTree(ArifmTree* tree) {
 ArifmTreeErrors openImageOfCurrentStateArifmTree(ArifmTree* tree) {
     IF_ARG_NULL_RETURN(tree);
     //RETURN_IF_INVALID();
+    LOG_WARNING("--------------@@@@@@@@@@@@@@@@@@@@@");
 
     // first we need to create image of current state of tree
     IF_ERR_RETURN(dumpArifmTree(tree));
 
     // FIXME: be carefull with nasty commands
-    const char* fileName = getLastImageFileName(&tree->dumper);
+    const char* fileName = getLastImageFileName(tree->dumper);
     const size_t TMP_LEN = 100;
     char tmp[TMP_LEN] = {};
     snprintf(tmp, TMP_LEN, "xdg-open %s", fileName);

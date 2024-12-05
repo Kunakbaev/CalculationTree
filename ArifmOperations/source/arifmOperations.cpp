@@ -53,7 +53,7 @@ ArifmOperationsErrors validateArifmOperationsArrays() {
     for (size_t funcInd = 0; funcInd < NUM_OF_FUNCS; ++funcInd) {
         Function    func     = functions[funcInd];
         //const char* funcName = functionNames[funcInd];
-        LOG_DEBUG_VARS(func.name, funcInd);
+        //LOG_DEBUG_VARS(func.name, funcInd);
         IF_NOT_COND_RETURN(func.name == funcInd          , ARIFM_OPERATIONS_INVALID_FUNC_ARRAYS);
         IF_NOT_COND_RETURN(func.calculationFunc   != NULL, ARIFM_OPERATIONS_INVALID_FUNC_ARRAYS);
         IF_NOT_COND_RETURN(func.latexToStringFunc != NULL, ARIFM_OPERATIONS_INVALID_FUNC_ARRAYS);
@@ -187,7 +187,7 @@ ArifmOperationsErrors arifmTreeNodeToString(const Node* node, char** result,
     return ARIFM_OPERATIONS_STATUS_OK;
 }
 
-static size_t getVariableIndex(char ch) {
+size_t getVariableIndex(char ch) {
     return ch - 'a';
 }
 

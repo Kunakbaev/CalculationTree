@@ -37,6 +37,7 @@ static ArifmTreeErrors simplifyTreeRecursive(ArifmTree* tree, size_t nodeInd, si
     if (node.nodeType != ARIFM_TREE_FUNC_NODE) {
         *resultNodeInd = nodeInd;
         *wasVariable   = node.nodeType == ARIFM_TREE_VAR_NODE;
+        LOG_ERROR("-------- var ------------------");
         return ARIFM_TREE_STATUS_OK;
     }
 
@@ -45,8 +46,12 @@ static ArifmTreeErrors simplifyTreeRecursive(ArifmTree* tree, size_t nodeInd, si
 
     Function func = {};
     ARIFM_OPS_ERR_CHECK(getFuncByIndex(node.data, &func));
-    double one = getArifmTreeNodePtr(tree, newLeftNode) ->doubleData;
-    double two = getArifmTreeNodePtr(tree, newRightNode)->doubleData;
+    double one = 0;
+    double two = 0;
+    if (newLeftNode)
+        one = getArifmTreeNodePtr(tree, newLeftNode) ->doubleData;
+    if (newRightNode)
+        two = getArifmTreeNodePtr(tree, newRightNode)->doubleData;
 
     *resultNodeInd = nodeInd;
 
@@ -68,6 +73,7 @@ static ArifmTreeErrors simplifyTreeRecursive(ArifmTree* tree, size_t nodeInd, si
     *resultNodeInd = constructNodeWithKidsNoErrors(tree, node.nodeType,
                                                    {.data=node.data}, newLeftNode, newRightNode);
     getArifmTreeNodePtr(tree, *resultNodeInd)->doubleData = node.doubleData;
+    tree->memBuff[node.memBuffIndex].nodeType = ARIFM_TREE_INVALID_NODE;
 
     return ARIFM_TREE_STATUS_OK;
 }
@@ -81,8 +87,6 @@ ArifmTreeErrors simplifyTree(ArifmTree* tree) {
         size_t newRoot = 0;
         wasSimplification = false;
         IF_ERR_RETURN(simplifyTreeRecursive(tree, tree->root, &newRoot, &wasVar, &wasSimplification));
-        LOG_ERROR("dfsad");
-        LOG_DEBUG_VARS(wasSimplification);
         tree->root = newRoot;
     }
 

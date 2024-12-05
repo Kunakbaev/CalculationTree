@@ -6,7 +6,7 @@
 #include "../../ArifmOperations/include/arifmOperations.hpp"
 #include "arifmTreeTreeStruct.hpp"
 
-ArifmTreeErrors constructArifmTree(ArifmTree* tree, const Dumper* dumper);
+ArifmTreeErrors constructArifmTree(ArifmTree* tree, Dumper* dumper);
 
 ArifmTreeErrors getNewNode(ArifmTree* tree, size_t* newNodeIndex);
 
@@ -19,8 +19,9 @@ ArifmTreeErrors saveArifmTreeToFile  (const ArifmTree* tree, const char* fileNam
 //                                              size_t leftSon, size_t rightSon);
 ArifmTreeErrors linkNewNodeToParent(ArifmTree* tree, size_t parentInd, bool isLeftSon,
                                     size_t* newNodeInd, const char* substr);
+ArifmTreeErrors getCopyOfTree(const ArifmTree* source, ArifmTree* dest);
 size_t getCopyOfSubtree(const ArifmTree* tree, ArifmTree* destTree,
-                        size_t srcNodeInd, size_t parentInd, bool isLeftSon);
+                        size_t srcNodeInd);
 Node* getArifmTreeNodePtr(const ArifmTree* tree, size_t nodeInd);
 size_t constructNodeWithKidsNoErrors(ArifmTree* tree, TreeNodeType nodeType, const NodeDataUnion data,
                                      size_t leftSon,  size_t rightSon);
@@ -31,6 +32,9 @@ ArifmTreeErrors openImageOfCurrentStateArifmTree(ArifmTree* tree);
 
 ArifmTreeErrors simplifyTree(ArifmTree* tree);
 ArifmTreeErrors getDerivativeOfTree(const ArifmTree* source, ArifmTree* dest);
+ArifmTreeErrors getNthDerivativeOfTree(const ArifmTree* tree, ArifmTree* result, int order);
+ArifmTreeErrors getTaylorSeriesOfTree(const ArifmTree* tree, ArifmTree* destTree,
+                                      size_t order, size_t variable, double point);
 ArifmTreeErrors destructArifmTree(ArifmTree* tree);
 
 #endif

@@ -15,6 +15,7 @@ struct Node2stringSettings {
 ArifmOperationsErrors validateArifmOperationsArrays();
 ArifmOperationsErrors initArifmTreeNodeWithString(Node* node, const char* line);
 ArifmOperationsErrors getFuncByIndex(size_t funcIndex, Function* func);
+size_t getVariableIndex(char ch);
 ArifmOperationsErrors arifmTreeNodeDataToString(const Node* node, char** result,
                                                 bool isFuncTypeNeeded);
 ArifmOperationsErrors arifmTreeNodeToString(const Node* node, char** result,

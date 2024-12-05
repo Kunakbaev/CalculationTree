@@ -33,11 +33,13 @@ static void initMemBuff(ArifmTree* tree) {
     assert(tree != NULL);
 
     for (size_t nodeInd = 0; nodeInd < tree->memBuffSize; ++nodeInd) {
-        tree->memBuff[nodeInd].memBuffIndex = nodeInd;
+        Node* node = &tree->memBuff[nodeInd];
+        node->memBuffIndex = nodeInd;
+        node->nodeType     = ARIFM_TREE_INVALID_NODE;
     }
 }
 
-ArifmTreeErrors constructArifmTree(ArifmTree* tree, const Dumper* dumper) {
+ArifmTreeErrors constructArifmTree(ArifmTree* tree, Dumper* dumper) {
     IF_ARG_NULL_RETURN(tree);
     IF_ARG_NULL_RETURN(dumper);
 
@@ -49,7 +51,7 @@ ArifmTreeErrors constructArifmTree(ArifmTree* tree, const Dumper* dumper) {
                        ARIFM_TREE_MEMORY_ALLOCATION_ERROR);
     tree->memBuffSize       = MIN_MEM_BUFF_SIZE;
     tree->freeNodeIndex     = 0; // 0 index is equal to NULL
-    tree->dumper            = *dumper;
+    tree->dumper            = dumper;
     initMemBuff(tree);
 
     RETURN_IF_INVALID();
@@ -63,7 +65,7 @@ static ArifmTreeErrors constructNode(ArifmTree* tree, Node* node, TreeNodeType n
     node->left     = node->right = node->parent = 0;
     node->nodeType = nodeType;
     double* ptr    = NULL;
-    LOG_DEBUG_VARS(data.data, data.doubleData);
+    //LOG_DEBUG_VARS(data.data, data.doubleData);
     switch (nodeType) {
         case ARIFM_TREE_VAR_NODE:
             node->data = data.data;
@@ -130,13 +132,14 @@ static ArifmTreeErrors resizeMemBuffer(ArifmTree* tree, size_t newSize) {
         memset(tree->memBuff + newSize, 0, deltaBytes);
     }
 
-    LOG_DEBUG_VARS(oldSize, deltaSize, deltaBytes);
+    //LOG_DEBUG_VARS(oldSize, deltaSize, deltaBytes);
     Node* tmp = (Node*)realloc(tree->memBuff, newSize * sizeof(Node));
     IF_NOT_COND_RETURN(tmp != NULL, ARIFM_TREE_MEMORY_ALLOCATION_ERROR);
     tree->memBuff     = tmp;
     tree->memBuffSize = newSize;
-
-    LOG_DEBUG_VARS(tmp);
+//     LOG_DEBUG_VARS(newSize);
+//
+//     LOG_DEBUG_VARS(tmp);
 
     if (oldSize < newSize) {
         memset(tree->memBuff + oldSize, 0, deltaBytes - 1);
@@ -144,7 +147,9 @@ static ArifmTreeErrors resizeMemBuffer(ArifmTree* tree, size_t newSize) {
 
     // if oldSize > newSize, no iterations will be executed
     for (size_t nodeInd = oldSize; nodeInd < newSize; ++nodeInd) {
-        tree->memBuff[nodeInd].memBuffIndex = nodeInd;
+        Node* node = &tree->memBuff[nodeInd];
+        node->memBuffIndex = nodeInd;
+        node->nodeType = ARIFM_TREE_INVALID_NODE;
     }
 
     return ARIFM_TREE_STATUS_OK;
@@ -182,7 +187,9 @@ ArifmTreeErrors getNewNode(ArifmTree* tree, size_t* newNodeIndex) {
     IF_ARG_NULL_RETURN(newNodeIndex);
 
     if (tree->freeNodeIndex + 1 >= tree->memBuffSize) {
+        //LOG_DEBUG_VARS(tree->freeNodeIndex + 1, tree->memBuffSize, "resize");
         IF_ERR_RETURN(resizeMemBuffer(tree, tree->memBuffSize * 2));
+        //LOG_DEBUG_VARS(tree->memBuffSize);
     }
     assert(tree->freeNodeIndex < tree->memBuffSize);
     *newNodeIndex = ++tree->freeNodeIndex;
@@ -195,11 +202,12 @@ Node* getArifmTreeNodePtr(const ArifmTree* tree, size_t nodeInd) {
     assert(nodeInd <= tree->freeNodeIndex);
     assert(nodeInd != 0);
 
+    //LOG_DEBUG_VARS(tree, nodeInd, tree->freeNodeIndex, tree->memBuffSize);
     return &tree->memBuff[nodeInd];
 }
 
 size_t getCopyOfSubtree(const ArifmTree* tree, ArifmTree* destTree,
-                        size_t srcNodeInd, size_t parentInd, bool isLeftSon) {
+                        size_t srcNodeInd) {
     if (!srcNodeInd)
         return 0;
 
@@ -208,27 +216,36 @@ size_t getCopyOfSubtree(const ArifmTree* tree, ArifmTree* destTree,
 
     size_t dest = 0;
     IF_ERR_RETURN(getNewNode(destTree, &dest));
+    LOG_DEBUG_VARS(dest, destTree->freeNodeIndex, destTree->memBuffSize);
     Node* node = getArifmTreeNodePtr(destTree, dest);
+    LOG_DEBUG_VARS(srcNodeInd);
     Node   old = *getArifmTreeNodePtr(tree, srcNodeInd);
-    LOG_DEBUG_VARS(old.data, old.nodeType, old.memBuffIndex);
+    //LOG_DEBUG_VARS(old.data, old.nodeType, old.memBuffIndex);
 
     node->nodeType   = old.nodeType;
     node->data       = old.data;
     node->doubleData = old.doubleData;
 
-    if (parentInd != 0) {
-        Node* parent = getArifmTreeNodePtr(destTree, parentInd);
-        if (isLeftSon)
-            parent->left  = dest;
-        else
-            parent->right = dest;
-    }
-
     // FIXME: кажется копипаст, переписать. Выполнять для себя, вызывать для детей
-    getCopyOfSubtree(tree, destTree, old.left,  dest, true);
-    getCopyOfSubtree(tree, destTree, old.right, dest, false);
+    LOG_DEBUG_VARS(dest, tree->memBuffSize);
+    size_t cop  = getCopyOfSubtree(tree, destTree, old.left);
+    destTree->memBuff[dest].left = cop;
+    LOG_DEBUG_VARS(dest, tree->memBuffSize, tree->memBuff[dest].right, old.right);
+    destTree->memBuff[dest].right = 0;
+    cop = getCopyOfSubtree(tree, destTree, old.right);
+    destTree->memBuff[dest].right = cop;
 
     return dest;
+}
+
+ArifmTreeErrors getCopyOfTree(const ArifmTree* source, ArifmTree* dest) {
+    IF_ARG_NULL_RETURN(source);
+    IF_ARG_NULL_RETURN(dest);
+
+    constructArifmTree(dest, source->dumper);
+    dest->root = getCopyOfSubtree(source, dest, source->root);
+
+    return ARIFM_TREE_STATUS_OK;
 }
 
 //#include "readArifmTreeFromFile.cpp"
@@ -239,6 +256,7 @@ size_t getCopyOfSubtree(const ArifmTree* tree, ArifmTree* destTree,
 
 #include "saveArifmTreeToFile.cpp"
 #include "findDerivativeOfTree.cpp"
+#include "getTaylorSeriesOfTree.cpp"
 #include "treeSimplification.cpp"
 #include "treeDumperFuncs.cpp"
 #include "treeValidationFuncs.cpp"

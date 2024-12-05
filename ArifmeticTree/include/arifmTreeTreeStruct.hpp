@@ -9,7 +9,7 @@ struct ArifmTree {
     Node*                        memBuff;
     size_t                       memBuffSize;
     size_t                       freeNodeIndex;
-    Dumper                       dumper;
+    Dumper*                      dumper;
 };
 
 #endif

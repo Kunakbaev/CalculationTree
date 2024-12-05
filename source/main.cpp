@@ -2,6 +2,7 @@
 
 #include "../Dumper/include/dumper.hpp"
 #include "../ArifmeticTree/include/arifmTree.hpp"
+#include "../ArifmOperations/include/arifmOperations.hpp"
 #include "logLib.hpp"
 
 #define IF_MAIN_ARIFM_TREE_ERR_RETURN(error)                                   \
@@ -32,20 +33,31 @@ int main() {
     //IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&tree));
     //IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&tree, "expresionLatex.tex"));
 
-    ArifmTree diffTree = {};
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(getDerivativeOfTree(&tree, &diffTree));
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&diffTree, "bruh.tex"));
+    // ArifmTree diffTree = {};
+    // IF_MAIN_ARIFM_TREE_ERR_RETURN(getDerivativeOfTree(&tree, &diffTree));
+    // IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&diffTree, "bruh.tex"));
 
     // IF_MAIN_ARIFM_TREE_ERR_RETURN(simplifyTree(&tree));
     // IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&tree));
 
+    ArifmTree result = {};
+    //IF_MAIN_ARIFM_TREE_ERR_RETURN(getTaylorSeriesOfTree(&tree, &result, 3, getVariableIndex('x'), 0));
+    //IF_MAIN_ARIFM_TREE_ERR_RETURN(getNthDerivativeOfTree(&tree, &result, 1));
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(getDerivativeOfTree(&tree, &result));
+    //IF_MAIN_ARIFM_TREE_ERR_RETURN(simplifyTree(&result));
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&result));
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&result, "bruh.tex"));
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
+    // IF_MAIN_ARIFM_TREE_ERR_RETURN(getNthDerivativeOfTree(&tree, &result, 2));
+    // IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
+
     // LOG_ERROR("--------------------------------");
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(simplifyTree(&diffTree));
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&diffTree, "bruh.tex"));
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&diffTree));
+    // IF_MAIN_ARIFM_TREE_ERR_RETURN(simplifyTree(&diffTree));
+    // IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&diffTree, "bruh.tex"));
+    // IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&diffTree));
 
     IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&tree));
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&diffTree));
+    //IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&diffTree));
     dumperDestructor(&dumper);
 
     return 0;

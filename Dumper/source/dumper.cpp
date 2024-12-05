@@ -19,7 +19,7 @@
 
 const size_t FILE_NAME_BUFFER_SIZE      = 100;
 const size_t FULL_FILE_NAME_BUFFER_SIZE = 200;
-const size_t BUFFER_SIZE                = 1 << 15;
+const size_t BUFFER_SIZE                = 1 << 17;
 const size_t TMP_BUFFER_SIZE            = 1 << 13;
 const size_t FORMAT_SPEC_LEN            = 5;
 const size_t COLOR_LEN                  = 10;
@@ -112,9 +112,9 @@ void dumperAddImgToAllLogsFile(const Dumper* dumper, const char* imagePath) {
     assert(dumper    != NULL);
     assert(imagePath != NULL);
 
-    LOG_DEBUG_VARS(imagePath);
+    //LOG_DEBUG_VARS(imagePath);
     fprintf(dumper->allLogsFile, "<img src=\"%s\"></img>\n", imagePath);
-    LOG_DEBUG("---------------");
+    //LOG_DEBUG("---------------");
 }
 
 static DumperErrors addNodeDumpStructToBuffer(const Dumper* dumper,
@@ -131,10 +131,10 @@ static DumperErrors addNodeDumpStructToBuffer(const Dumper* dumper,
         char* nodesDataStr = NULL;
         ARIFM_OPS_ERR_CHECK(arifmTreeNodeToString(node, &nodesDataStr,
                                                   &settings->node2stringSettings));
-        LOG_DEBUG_VARS(nodesDataStr, node->data, node->memBuffIndex);
+        //LOG_DEBUG_VARS(nodesDataStr, node->data, node->memBuffIndex);
 
         char* tmpPtr = tmpBuffer;
-        LOG_DEBUG_VARS(color);
+        //LOG_DEBUG_VARS(color);
         tmpPtr += snprintf(tmpPtr, TMP_BUFFER_SIZE - (tmpPtr - tmpBuffer),
         "iamnode_id_%zu [shape=circle, style=filled, fillcolor=\"%s\" margin=0, penwidth=\"3%\" fontcolor=white, color=\"%s\", label=< \n"
             "<TABLE cellspacing=\"0\" border=\"0\"> \n"
@@ -216,7 +216,7 @@ DumperErrors dumperDumpSingleTreeNode(Dumper* dumper,
 
 
 
-static const char*  DEFAULT_COLOR = "white";
+static const char*  DEFAULT_COLOR = "black";
 
 static const char* getNodeColor(const Node* node, const DumperSettings* settings, const char** borderColorRes) {
     assert(node                      != NULL);
@@ -229,7 +229,11 @@ static const char* getNodeColor(const Node* node, const DumperSettings* settings
         const char* color       = settings->coloringRule[arrInd].color;
         const char* borderColor = settings->coloringRule[arrInd].borderColor;
         size_t*     nodes       = settings->coloringRule[arrInd].nodes;
-        size_t   nodesLen       = settings->coloringRule[arrInd].numOfNodes;
+        size_t      nodesLen    = settings->coloringRule[arrInd].numOfNodes;
+        if (node->memBuffIndex == 61) {
+            LOG_ERROR("-------------");
+            LOG_DEBUG_VARS(color, nodesLen, nodes[0], nodes[1], nodes[2]);
+        }
 
         for (size_t nodeArrInd = 0; nodeArrInd < nodesLen; ++nodeArrInd) {
             size_t nodeInd = nodes[nodeArrInd];
@@ -259,6 +263,7 @@ static DumperErrors drawArifmTreeRecursively(const Dumper* dumper, const ArifmTr
     const char* color = getNodeColor(&node, settings, &borderColor);
     IF_ERR_RETURN(addNodeDumpStructToBuffer(dumper, &node, color, borderColor, settings));
 
+    //LOG_DEBUG_VARS(nodeInd, tree->root, parentInd);
     if (parentInd != 0) {
         memset(tmpBuffer, 0, TMP_BUFFER_SIZE);
 
@@ -289,7 +294,7 @@ char* getLastImageFileName(const Dumper* dumper) {
     memset(fileNameBuffer, 0, FILE_NAME_BUFFER_SIZE);
     snprintf(fileNameBuffer, FILE_NAME_BUFFER_SIZE,
             "%zu_list.%s", dumper->numberOfLogsBefore, dumper->outputFileFormat);
-    LOG_DEBUG_VARS(fileNameBuffer);
+    //LOG_DEBUG_VARS(fileNameBuffer);
 
     snprintf(tmpBuffer, TMP_BUFFER_SIZE,
              "%s/images/%s", dumper->dirForLogsPath, fileNameBuffer);
@@ -304,6 +309,7 @@ DumperErrors dumperDumpArifmTree(Dumper* dumper, const ArifmTree* tree,
     IF_ARG_NULL_RETURN(settings);
     IF_ARG_NULL_RETURN(tree);
 
+    // LOG_DEBUG_VARS(dumper, tree->dumper);
     LOG_DEBUG("typical binary tree dumping ---------------------");
     ++dumper->numberOfLogsBefore;
     memset(fileNameBuffer, 0, FILE_NAME_BUFFER_SIZE);

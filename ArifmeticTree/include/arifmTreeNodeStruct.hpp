@@ -4,9 +4,10 @@
 #include <cstddef>
 
 enum TreeNodeType {
-    ARIFM_TREE_NUMBER_NODE = 0,
-    ARIFM_TREE_VAR_NODE    = 1,
-    ARIFM_TREE_FUNC_NODE   = 2,
+    ARIFM_TREE_INVALID_NODE = 0,
+    ARIFM_TREE_NUMBER_NODE  = 1,
+    ARIFM_TREE_VAR_NODE     = 2,
+    ARIFM_TREE_FUNC_NODE    = 3,
 }; // ASK: maybe move to arifm operations submodule?
 
 union NodeDataUnion {

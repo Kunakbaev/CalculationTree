@@ -19,13 +19,13 @@ static ArifmTreeErrors recursiveTreeSaveToFile(const ArifmTree* tree, size_t nod
     }
 
     ARIFM_OPS_ERR_CHECK(getNodeLatexString(&node, leftSonString, rightSonString, buffer));
-    LOG_DEBUG_VARS(leftSonString);
-    LOG_DEBUG_VARS(rightSonString);
+    // LOG_DEBUG_VARS(leftSonString);
+    // LOG_DEBUG_VARS(rightSonString);
     if (strlen(leftSonString) != 0)
         FREE(leftSonString);
     if (strlen(rightSonString) != 0)
         FREE(rightSonString);
-    LOG_DEBUG_VARS(*buffer);
+    // LOG_DEBUG_VARS(*buffer);
 
     if (parentInd == 0)
         return ARIFM_TREE_STATUS_OK;
@@ -42,7 +42,7 @@ static ArifmTreeErrors recursiveTreeSaveToFile(const ArifmTree* tree, size_t nod
         sprintf(tmp, "%s%s%s", leftBracket, *buffer, rightBracket);
         FREE(*buffer);
         *buffer = tmp;
-        LOG_DEBUG_VARS(*buffer);
+        //LOG_DEBUG_VARS(*buffer);
     }
 
     return ARIFM_TREE_STATUS_OK;
@@ -69,7 +69,7 @@ ArifmTreeErrors saveArifmTreeToFile(const ArifmTree* tree, const char* fileName)
 
     char* buffer = NULL;
     IF_ERR_RETURN(recursiveTreeSaveToFile(tree, tree->root, 0, &buffer));
-    LOG_DEBUG_VARS(buffer);
+    //LOG_DEBUG_VARS(buffer);
 
     fprintf(file,
         "\\documentclass[12pt,a4paper]{extreport}\n"

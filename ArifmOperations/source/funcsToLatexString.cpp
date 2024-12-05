@@ -22,9 +22,9 @@ static ArifmOperationsErrors funcToLatexCommonImplementation(char* left, char* r
     IF_ARG_NULL_RETURN(right);
     IF_ARG_NULL_RETURN(funcFormat);
     IF_ARG_NULL_RETURN(result);
-    LOG_DEBUG_VARS(format);
-    LOG_DEBUG_VARS(left);
-    LOG_DEBUG_VARS(right);
+    // LOG_DEBUG_VARS(format);
+    // LOG_DEBUG_VARS(left);
+    // LOG_DEBUG_VARS(right);
 
     size_t leftLen   = strlen(left);
     size_t rightLen  = strlen(right);
@@ -34,8 +34,8 @@ static ArifmOperationsErrors funcToLatexCommonImplementation(char* left, char* r
     *result = (char*)calloc(resLen + 1, sizeof(char));
     IF_NOT_COND_RETURN(*result != NULL, ARIFM_OPERATIONS_MEMORY_ALLOCATION_ERROR);
 
-    LOG_DEBUG_VARS(left, right, format);
-    LOG_DEBUG_VARS(leftLen, rightLen, formatLen, resLen);
+    // LOG_DEBUG_VARS(left, right, format);
+    // LOG_DEBUG_VARS(leftLen, rightLen, formatLen, resLen);
     snprintf(*result, resLen, funcFormat, left, right);
 
     return ARIFM_OPERATIONS_STATUS_OK;
