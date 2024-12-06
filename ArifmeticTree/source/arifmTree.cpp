@@ -151,7 +151,7 @@ static ArifmTreeErrors resizeMemBuffer(ArifmTree* tree, size_t newSize) {
         node->memBuffIndex = nodeInd;
         node->nodeType = ARIFM_TREE_INVALID_NODE;
     }
-    LOG_WARNING("@@@@@@@@@@@@@@@@@@@@@@");
+    //LOG_WARNING("@@@@@@@@@@@@@@@@@@@@@@");
 
     // for (size_t i = 0; i < newSize; ++i)
     //     LOG_DEBUG_VARS(oldSize, newSize, tree->memBuff[i].data = 10);
@@ -242,6 +242,35 @@ size_t getCopyOfSubtree(const ArifmTree* tree, ArifmTree* destTree,
     return dest;
 }
 
+ArifmTreeErrors substitutePointToTree(const ArifmTree* tree, size_t curNodeInd, double point, double* result) {
+    IF_ARG_NULL_RETURN(tree);
+    IF_ARG_NULL_RETURN(result);
+
+    if (!curNodeInd)
+        return ARIFM_TREE_STATUS_OK;
+
+    Node* node = getArifmTreeNodePtr(tree, curNodeInd);
+    if (node->nodeType != ARIFM_TREE_FUNC_NODE) {
+        if (node->nodeType == ARIFM_TREE_VAR_NODE)
+            *result = point;
+        else
+            *result = node->doubleData;
+        return ARIFM_TREE_STATUS_OK;
+    }
+
+    double leftRes  = 0;
+    double rightRes = 0;
+    IF_ERR_RETURN(substitutePointToTree(tree, node->left , point, & leftRes));
+    IF_ERR_RETURN(substitutePointToTree(tree, node->right, point, &rightRes));
+
+    Function func = {};
+    ARIFM_OPS_ERR_CHECK(getFuncByIndex(node->data, &func));
+    LOG_DEBUG_VARS(leftRes, rightRes);
+    *result = (*func.calculationFunc)(leftRes, rightRes);
+
+    return ARIFM_TREE_STATUS_OK;
+}
+
 ArifmTreeErrors getCopyOfTree(const ArifmTree* source, ArifmTree* dest) {
     IF_ARG_NULL_RETURN(source);
     IF_ARG_NULL_RETURN(dest);
@@ -264,6 +293,7 @@ ArifmTreeErrors getCopyOfTree(const ArifmTree* source, ArifmTree* dest) {
 #include "treeSimplification.cpp"
 #include "treeDumperFuncs.cpp"
 #include "treeValidationFuncs.cpp"
+#include "drawPlot.cpp"
 
 ArifmTreeErrors readArifmTreeFromFile(ArifmTree* tree, const char* fileName) {
     IF_ARG_NULL_RETURN(tree);

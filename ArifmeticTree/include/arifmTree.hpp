@@ -17,8 +17,16 @@ ArifmTreeErrors saveArifmTreeToFile  (const ArifmTree* tree, const char* fileNam
 
 // static ArifmTreeErrors constructNodeWithKids(ArifmTree* tree, size_t* newNodeInd, TreeNodeType nodeType, const void* data,
 //                                              size_t leftSon, size_t rightSon);
+
+ArifmTreeErrors addArifmTreePlot(const ArifmTree* tree,
+                                   double minX, double maxX,
+                                   double minY, double maxY,
+                                   const char* color, const char* label);
+void drawAllPlots();
+
 ArifmTreeErrors linkNewNodeToParent(ArifmTree* tree, size_t parentInd, bool isLeftSon,
                                     size_t* newNodeInd, const char* substr);
+ArifmTreeErrors substitutePointToTree(const ArifmTree* tree, size_t curNodeInd, double point, double* result);
 ArifmTreeErrors getCopyOfTree(const ArifmTree* source, ArifmTree* dest);
 size_t getCopyOfSubtree(const ArifmTree* tree, ArifmTree* destTree,
                         size_t srcNodeInd);

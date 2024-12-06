@@ -8,7 +8,7 @@ ArifmTreeErrors assignParentNodes(ArifmTree* tree, size_t nodeInd, size_t parent
         return ARIFM_TREE_STATUS_OK;
 
     Node* node = getArifmTreeNodePtr(tree, nodeInd);
-    LOG_DEBUG_VARS(nodeInd, node->memBuffIndex, node->left, node->right);
+    //LOG_DEBUG_VARS(nodeInd, node->memBuffIndex, node->left, node->right);
     node->parent = parentInd;
 
     IF_ERR_RETURN(assignParentNodes(tree, node->left , nodeInd));

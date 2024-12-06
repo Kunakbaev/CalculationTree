@@ -18,9 +18,9 @@
     } while(0)
 
 int main() {
-    setLoggingLevel(DEBUG);
+    //setLoggingLevel(DEBUG);
 
-    LOG_DEBUG("Hello world!");
+    //LOG_DEBUG("Hello world!");
 
     Dumper dumper = {};
     dumperConstructor(&dumper, 10, "logs", "png"); // referece_count: ctor +1
@@ -30,7 +30,7 @@ int main() {
     IF_MAIN_ARIFM_TREE_ERR_RETURN(constructArifmTree(&tree, &dumper));
     IF_MAIN_ARIFM_TREE_ERR_RETURN(readArifmTreeFromFile(&tree, "expression.txt"));
     //IF_MAIN_ARIFM_TREE_ERR_RETURN(dumpArifmTree(&tree));
-    //IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&tree));
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&tree));
     //IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&tree, "expresionLatex.tex"));
 
     // ArifmTree diffTree = {};
@@ -41,13 +41,29 @@ int main() {
     // IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&tree));
 
     ArifmTree result = {};
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(getTaylorSeriesOfTree(&tree, &result, 5, getVariableIndex('x'), 0));
-    //IF_MAIN_ARIFM_TREE_ERR_RETURN(getNthDerivativeOfTree(&tree, &result, 3));
-    //IF_MAIN_ARIFM_TREE_ERR_RETURN(getDerivativeOfTree(&tree, &result));
-    //IF_MAIN_ARIFM_TREE_ERR_RETURN(simplifyTree(&result));
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&result));
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&result, "bruh.tex"));
+    // IF_MAIN_ARIFM_TREE_ERR_RETURN(getTaylorSeriesOfTree(&tree, &result, 1, getVariableIndex('x'), 0));
+    // //IF_MAIN_ARIFM_TREE_ERR_RETURN(getNthDerivativeOfTree(&tree, &result, 3));
+    // //IF_MAIN_ARIFM_TREE_ERR_RETURN(getDerivativeOfTree(&tree, &result));
+    // //IF_MAIN_ARIFM_TREE_ERR_RETURN(simplifyTree(&result));
+    // IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&result));
+    // IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&result, "bruh.tex"));
+    // IF_MAIN_ARIFM_TREE_ERR_RETURN(drawArifmTreeGraph(&result));
+
+    FILE* file = fopen("pythonScripts/plotPoints.txt", "w");
+    fprintf(file, "");
+    fclose(file);
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(getTaylorSeriesOfTree(&tree, &result, 7, getVariableIndex('x'), 0));
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(addArifmTreePlot(&result, -10, 10, -10, 10, "g", "order9"));
     IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
+
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(getTaylorSeriesOfTree(&tree, &result, 3, getVariableIndex('x'), 0));
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(addArifmTreePlot(&result, -10, 10, -10, 10, "b", "order3"));
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
+
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(addArifmTreePlot(&tree, -10, 10, -10, 10, "r", "original"));
+    drawAllPlots();
+
+    //IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
     // IF_MAIN_ARIFM_TREE_ERR_RETURN(getNthDerivativeOfTree(&tree, &result, 2));
     // IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
 

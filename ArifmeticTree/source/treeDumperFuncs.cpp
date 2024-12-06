@@ -1,7 +1,7 @@
 #include "../include/commonFileStart.hpp"
 #include "../../Dumper/include/dumper.hpp"
 
-const size_t OUTPUT_BUFFER_SIZE = 1 << 17;
+const size_t OUTPUT_BUFFER_SIZE = 1 << 18;
 
 static ArifmTreeErrors dumpArifmTreeInConsoleRecursive(const ArifmTree* tree, size_t nodeIndex,
                                                        char** outputBuffer, const Node2stringSettings* settings) {
@@ -72,7 +72,12 @@ ArifmTreeErrors dumpArifmTree(ArifmTree* tree) {
     };
 
     size_t diffNodeTypesPtr[4] = {};
-    size_t diffNodeTypes[4][MAX_NUM_OF_NODES_IN_ONE_COLOR_WITH_NODES_STRUCT] = {};
+    size_t* diffNodeTypes[4] = {};
+    for (size_t i = 1; i <= 3; ++i) {
+        diffNodeTypes[i] = (size_t*)calloc(MAX_NUM_OF_NODES_IN_ONE_COLOR_WITH_NODES_STRUCT, sizeof(size_t));
+        IF_NOT_COND_RETURN(diffNodeTypes[i] != NULL,
+                           ARIFM_TREE_MEMORY_ALLOCATION_ERROR);
+    }
     for (size_t nodeInd = 1; nodeInd <= tree->freeNodeIndex; ++nodeInd) {
         Node node = *getArifmTreeNodePtr(tree, nodeInd);
         if (node.nodeType == ARIFM_TREE_INVALID_NODE)
@@ -88,11 +93,11 @@ ArifmTreeErrors dumpArifmTree(ArifmTree* tree) {
         FREE(data);
 
         assert(1 <= node.nodeType && node.nodeType <= 3);
-        if (node.nodeType == ARIFM_TREE_VAR_NODE) {
-            LOG_ERROR("-------------------------");
-            LOG_DEBUG_VARS(nodeInd);
-        }
         LOG_DEBUG_VARS(diffNodeTypesPtr[node.nodeType]);
+        // if (diffNodeTypesPtr[node.nodeType] < MAX_NUM_OF_NODES_IN_ONE_COLOR_WITH_NODES_STRUCT) {
+        //     fprintf(stderr, "%zu bruh %zu\n", diffNodeTypesPtr[node.nodeType], MAX_NUM_OF_NODES_IN_ONE_COLOR_WITH_NODES_STRUCT);
+        // }
+        assert(diffNodeTypesPtr[node.nodeType] < MAX_NUM_OF_NODES_IN_ONE_COLOR_WITH_NODES_STRUCT);
         diffNodeTypes[node.nodeType][diffNodeTypesPtr[node.nodeType]++] = nodeInd;
     }
 
@@ -130,6 +135,8 @@ ArifmTreeErrors dumpArifmTree(ArifmTree* tree) {
         .node2stringSettings    = nodeDumpSettings,
     };
     DUMPER_ERR_CHECK(dumperDumpArifmTree(tree->dumper, tree, &settings));
+    for (int i = 1; i <= 3; ++i)
+        FREE(diffNodeTypes[i]);
 
     return ARIFM_TREE_STATUS_OK;
 }

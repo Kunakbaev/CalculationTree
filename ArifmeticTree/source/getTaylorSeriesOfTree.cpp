@@ -68,6 +68,10 @@ ArifmTreeErrors getTaylorSeriesOfTree(const ArifmTree* tree, ArifmTree* destTree
         size_t prevNode = NEW_NUM_NODE(0);
         if (i) prevNode = destTree->root;
         IF_ERR_RETURN(substituteConst(&add, point));
+
+        // TODO: there is no need to recalculate derivative of a tree every time from scratch
+        //       also there is a function that just calculates value that tree returns if x is eq to point
+
         //openImageOfCurrentStateArifmTree(&add);
 
         destTree->root =

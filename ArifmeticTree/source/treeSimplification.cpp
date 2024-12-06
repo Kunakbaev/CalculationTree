@@ -37,7 +37,7 @@ static ArifmTreeErrors simplifyTreeRecursive(ArifmTree* tree, size_t nodeInd, si
     if (node.nodeType != ARIFM_TREE_FUNC_NODE) {
         *resultNodeInd = nodeInd;
         *wasVariable   = node.nodeType == ARIFM_TREE_VAR_NODE;
-        LOG_ERROR("-------- var ------------------");
+        //LOG_ERROR("-------- var ------------------");
         return ARIFM_TREE_STATUS_OK;
     }
 
