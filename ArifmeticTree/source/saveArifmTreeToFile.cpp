@@ -2,6 +2,10 @@
 
 #include "../include/commonFileStart.hpp"
 
+const size_t OUTPUT_BUFF_SIZE = 1 << 12;
+char allOutputBuffer[OUTPUT_BUFF_SIZE] = {};
+char* outputBuffPtr = allOutputBuffer;
+
 static ArifmTreeErrors recursiveTreeSaveToFile(const ArifmTree* tree, size_t nodeInd, size_t parentInd, char** buffer) {
     IF_ARG_NULL_RETURN(tree);
     IF_ARG_NULL_RETURN(buffer);
@@ -48,39 +52,46 @@ static ArifmTreeErrors recursiveTreeSaveToFile(const ArifmTree* tree, size_t nod
     return ARIFM_TREE_STATUS_OK;
 }
 
-static void saveTexBufferToFile(const char* fileName) {
-    assert(fileName != NULL);
+static ArifmTreeErrors renderTexFile(const char* fileName) {
+    IF_ARG_NULL_RETURN(fileName);
 
     system("mkdir -p latexPdfs");
-    const size_t TMP_BUFF_SIZE = 100;
-    char tmp[TMP_BUFF_SIZE] = {};
-    snprintf(tmp, TMP_BUFF_SIZE, "cd ./latexPdfs; xelatex %s > logErrors; cd ..", fileName);
-    system(tmp);
-}
-
-ArifmTreeErrors saveArifmTreeToFile(const ArifmTree* tree, const char* fileName) {
-    IF_ARG_NULL_RETURN(tree);
 
     const size_t TMP_BUFF_SIZE = 300;
     char tmp[TMP_BUFF_SIZE] = {};
     snprintf(tmp, TMP_BUFF_SIZE, "latexPdfs/%s", fileName);
-    FILE* file = fopen(tmp, "w");
+    FILE* file = fopen(tmp, "w"); // WARNING: it's bad that file is every time rewritten from scratch
     IF_NOT_COND_RETURN(file != NULL, ARIFM_TREE_FILE_OPENING_ERROR);
+    LOG_DEBUG_VARS(tmp, allOutputBuffer);
+    fprintf(file,
+        "\\documentclass[12pt,a4paper]{extreport}\n"
+        "\\begin{document}\n"
+        "$\n%s$\n"
+        "\\end{document}",
+        allOutputBuffer
+    );
+    IF_NOT_COND_RETURN(file != NULL, ARIFM_TREE_FILE_OPENING_ERROR);
+    fclose(file);
+
+    snprintf(tmp, TMP_BUFF_SIZE, "cd ./latexPdfs; xelatex %s > logErrors; cd ..", fileName);
+    system(tmp);
+
+    return ARIFM_TREE_STATUS_OK;
+}
+
+ArifmTreeErrors addTreeLatexRepresenationToFile(const ArifmTree* tree, const char* fileName) {
+    IF_ARG_NULL_RETURN(tree);
 
     char* buffer = NULL;
     IF_ERR_RETURN(recursiveTreeSaveToFile(tree, tree->root, 0, &buffer));
     //LOG_DEBUG_VARS(buffer);
 
-    fprintf(file,
-        "\\documentclass[12pt,a4paper]{extreport}\n"
-        "\\begin{document}\n"
-        "$%s$\n"
-        "\\end{document}\n",
-        buffer);
-    fclose(file);
+    outputBuffPtr += snprintf(outputBuffPtr, OUTPUT_BUFF_SIZE - (outputBuffPtr - allOutputBuffer),
+                                "\\\\\n%s\n", buffer);
     FREE(buffer);
+    LOG_DEBUG_VARS(allOutputBuffer);
 
-    saveTexBufferToFile(fileName);
+    renderTexFile(fileName);
 
     return ARIFM_TREE_STATUS_OK;
 }

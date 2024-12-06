@@ -13,7 +13,7 @@ ArifmTreeErrors getNewNode(ArifmTree* tree, size_t* newNodeIndex);
 
 //ArifmTreeErrors getPathToArifmTreeNode(const ArifmTree* tree, const Node* node, size_t** path);
 ArifmTreeErrors readArifmTreeFromFile(ArifmTree* tree, const char* fileName);
-ArifmTreeErrors saveArifmTreeToFile  (const ArifmTree* tree, const char* fileName);
+ArifmTreeErrors addTreeLatexRepresenationToFile(const ArifmTree* tree, const char* fileName);
 
 // static ArifmTreeErrors constructNodeWithKids(ArifmTree* tree, size_t* newNodeInd, TreeNodeType nodeType, const void* data,
 //                                              size_t leftSon, size_t rightSon);

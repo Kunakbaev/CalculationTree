@@ -18,7 +18,7 @@
     } while(0)
 
 int main() {
-    //setLoggingLevel(DEBUG);
+    setLoggingLevel(DEBUG);
 
     //LOG_DEBUG("Hello world!");
 
@@ -52,16 +52,25 @@ int main() {
     FILE* file = fopen("pythonScripts/plotPoints.txt", "w");
     fprintf(file, "");
     fclose(file);
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(getTaylorSeriesOfTree(&tree, &result, 7, getVariableIndex('x'), 0));
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(addArifmTreePlot(&result, -10, 10, -10, 10, "g", "order9"));
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
+
+    //addTreeLatexRepresenationToFile(&tree, "bruh.tex");
 
     IF_MAIN_ARIFM_TREE_ERR_RETURN(getTaylorSeriesOfTree(&tree, &result, 3, getVariableIndex('x'), 0));
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(addArifmTreePlot(&result, -10, 10, -10, 10, "b", "order3"));
+    addTreeLatexRepresenationToFile(&tree, "bruh.tex");
+    addTreeLatexRepresenationToFile(&result, "bruh.tex");
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(getNthDerivativeOfTree(&tree, &result, 3));
+    addTreeLatexRepresenationToFile(&result, "bruh.tex");
+    //IF_MAIN_ARIFM_TREE_ERR_RETURN(addArifmTreePlot(&result, -10, 10, -10, 10, "g", "order9"));
     IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
 
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(addArifmTreePlot(&tree, -10, 10, -10, 10, "r", "original"));
-    drawAllPlots();
+    // IF_MAIN_ARIFM_TREE_ERR_RETURN(getTaylorSeriesOfTree(&tree, &result, 3, getVariableIndex('x'), 0));
+    // //addTreeLatexRepresenationToFile(&result, "bruh.tex");
+    // IF_MAIN_ARIFM_TREE_ERR_RETURN(addArifmTreePlot(&result, -10, 10, -10, 10, "b", "order3"));
+    // IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
+
+    // IF_MAIN_ARIFM_TREE_ERR_RETURN(addArifmTreePlot(&tree, -10, 10, -10, 10, "r", "original"));
+    // drawAllPlots();
 
     //IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
     // IF_MAIN_ARIFM_TREE_ERR_RETURN(getNthDerivativeOfTree(&tree, &result, 2));
