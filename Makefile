@@ -34,6 +34,7 @@ SRC 	   		   := 						\
 	$(ARIFM_TREE_OPERATIONS_PATH)/funcsToLatexString.cpp\
 	$(READER_PATH)/reader.cpp\
 	$(READER_PATH)/getArrayOfLexems.cpp\
+	$(READER_PATH)/appropriateRead.cpp\
 	$(READER_PATH)/readerErrors.cpp\
 	$(DUMPER_MODULE_PATH)/dumper.cpp		\
 	$(SOURCE_DIR)/main.cpp					\

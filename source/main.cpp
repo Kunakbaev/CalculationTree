@@ -7,9 +7,9 @@
 #include "logLib.hpp"
 
 #define IF_MAIN_ARIFM_TREE_ERR_RETURN(error)                                   \
-    do {                                                            \
-        ArifmTreeErrors tmp = error;                             \
-        if (tmp != ARIFM_TREE_STATUS_OK) {                       \
+    do {                                                                       \
+        ArifmTreeErrors tmp = error;                                           \
+        if (tmp != ARIFM_TREE_STATUS_OK) {                                        \
             LOG_ERROR(getArifmTreeErrorMessage(tmp));            \
             /* if error occurs in destructor, then we are screwed*/ \
             destructArifmTree(&tree);                            \
@@ -27,76 +27,77 @@ int main() {
     dumperConstructor(&dumper, 10, "logs", "png"); // referece_count: ctor +1
                                                    //                 dtor -1, if (0) -> free
 
-    const char* inputLine = "(598 + 79) * (103 - 98)";
-    Node* array = NULL;
-    size_t arrLen = 0;
-    getArrayOfLexems(inputLine, &arrLen, &array);
+    const char* inputLine = "(((3 * 97 + x * 7) / 32) + (s + 19)) * 7";
+    //const char* inputLine = "(8 + 1) * 9";
+    ArifmTree tree = {};
+    constructArifmTree(&tree, &dumper);
+    constructArifmTreeFromTextLine(inputLine, &tree);
+    openImageOfCurrentStateArifmTree(&tree);
 
-    for (size_t i = 0; i < arrLen; ++i) {
-        LOG_DEBUG_VARS(i, array[i].nodeType, array[i].data, array[i].doubleData);
-    }
+    destructArifmTree(&tree);
+    dumperDestructor(&dumper);
 
     exit(0);
 
-    ArifmTree tree = {};
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(constructArifmTree(&tree, &dumper));
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(readArifmTreeFromFile(&tree, "expression.txt"));
-    //IF_MAIN_ARIFM_TREE_ERR_RETURN(dumpArifmTree(&tree));
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&tree));
-    //IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&tree, "expresionLatex.tex"));
-
-    // ArifmTree diffTree = {};
-    // IF_MAIN_ARIFM_TREE_ERR_RETURN(getDerivativeOfTree(&tree, &diffTree));
-    // IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&diffTree, "bruh.tex"));
-
-    // IF_MAIN_ARIFM_TREE_ERR_RETURN(simplifyTree(&tree));
-    // IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&tree));
-
-    ArifmTree result = {};
-    // IF_MAIN_ARIFM_TREE_ERR_RETURN(getTaylorSeriesOfTree(&tree, &result, 1, getVariableIndex('x'), 0));
-    // //IF_MAIN_ARIFM_TREE_ERR_RETURN(getNthDerivativeOfTree(&tree, &result, 3));
-    // //IF_MAIN_ARIFM_TREE_ERR_RETURN(getDerivativeOfTree(&tree, &result));
-    // //IF_MAIN_ARIFM_TREE_ERR_RETURN(simplifyTree(&result));
-    // IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&result));
-    // IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&result, "bruh.tex"));
-    // IF_MAIN_ARIFM_TREE_ERR_RETURN(drawArifmTreeGraph(&result));
-
-    FILE* file = fopen("pythonScripts/plotPoints.txt", "w");
-    fprintf(file, "");
-    fclose(file);
-
-    //addTreeLatexRepresenationToFile(&tree, "bruh.tex");
-
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(getTaylorSeriesOfTree(&tree, &result, 3, getVariableIndex('x'), 0));
-    addTreeLatexRepresenationToFile(&tree, "bruh.tex");
-    addTreeLatexRepresenationToFile(&result, "bruh.tex");
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(getNthDerivativeOfTree(&tree, &result, 3));
-    addTreeLatexRepresenationToFile(&result, "bruh.tex");
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(addArifmTreePlot(&result, -10, 10, -10, 10, "g", "order9"));
-    drawAllPlots();
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
-
-    // IF_MAIN_ARIFM_TREE_ERR_RETURN(getTaylorSeriesOfTree(&tree, &result, 3, getVariableIndex('x'), 0));
-    // //addTreeLatexRepresenationToFile(&result, "bruh.tex");
-    // IF_MAIN_ARIFM_TREE_ERR_RETURN(addArifmTreePlot(&result, -10, 10, -10, 10, "b", "order3"));
-    // IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
-
-    // IF_MAIN_ARIFM_TREE_ERR_RETURN(addArifmTreePlot(&tree, -10, 10, -10, 10, "r", "original"));
-    // drawAllPlots();
-
-    //IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
-    // IF_MAIN_ARIFM_TREE_ERR_RETURN(getNthDerivativeOfTree(&tree, &result, 2));
-    // IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
-
-    // LOG_ERROR("--------------------------------");
-    // IF_MAIN_ARIFM_TREE_ERR_RETURN(simplifyTree(&diffTree));
-    // IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&diffTree, "bruh.tex"));
-    // IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&diffTree));
-
-    IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&tree));
-    //IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&diffTree));
-    dumperDestructor(&dumper);
+//     ArifmTree tree = {};
+//     IF_MAIN_ARIFM_TREE_ERR_RETURN(constructArifmTree(&tree, &dumper));
+//     IF_MAIN_ARIFM_TREE_ERR_RETURN(readArifmTreeFromFile(&tree, "expression.txt"));
+//     //IF_MAIN_ARIFM_TREE_ERR_RETURN(dumpArifmTree(&tree));
+//     IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&tree));
+//     //IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&tree, "expresionLatex.tex"));
+//
+//     // ArifmTree diffTree = {};
+//     // IF_MAIN_ARIFM_TREE_ERR_RETURN(getDerivativeOfTree(&tree, &diffTree));
+//     // IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&diffTree, "bruh.tex"));
+//
+//     // IF_MAIN_ARIFM_TREE_ERR_RETURN(simplifyTree(&tree));
+//     // IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&tree));
+//
+//     ArifmTree result = {};
+//     // IF_MAIN_ARIFM_TREE_ERR_RETURN(getTaylorSeriesOfTree(&tree, &result, 1, getVariableIndex('x'), 0));
+//     // //IF_MAIN_ARIFM_TREE_ERR_RETURN(getNthDerivativeOfTree(&tree, &result, 3));
+//     // //IF_MAIN_ARIFM_TREE_ERR_RETURN(getDerivativeOfTree(&tree, &result));
+//     // //IF_MAIN_ARIFM_TREE_ERR_RETURN(simplifyTree(&result));
+//     // IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&result));
+//     // IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&result, "bruh.tex"));
+//     // IF_MAIN_ARIFM_TREE_ERR_RETURN(drawArifmTreeGraph(&result));
+//
+//     FILE* file = fopen("pythonScripts/plotPoints.txt", "w");
+//     fprintf(file, "");
+//     fclose(file);
+//
+//     //addTreeLatexRepresenationToFile(&tree, "bruh.tex");
+//
+//     IF_MAIN_ARIFM_TREE_ERR_RETURN(getTaylorSeriesOfTree(&tree, &result, 3, getVariableIndex('x'), 0));
+//     addTreeLatexRepresenationToFile(&tree, "bruh.tex");
+//     addTreeLatexRepresenationToFile(&result, "bruh.tex");
+//     IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
+//     IF_MAIN_ARIFM_TREE_ERR_RETURN(getNthDerivativeOfTree(&tree, &result, 3));
+//     addTreeLatexRepresenationToFile(&result, "bruh.tex");
+//     IF_MAIN_ARIFM_TREE_ERR_RETURN(addArifmTreePlot(&result, -10, 10, -10, 10, "g", "order9"));
+//     drawAllPlots();
+//     IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
+//
+//     // IF_MAIN_ARIFM_TREE_ERR_RETURN(getTaylorSeriesOfTree(&tree, &result, 3, getVariableIndex('x'), 0));
+//     // //addTreeLatexRepresenationToFile(&result, "bruh.tex");
+//     // IF_MAIN_ARIFM_TREE_ERR_RETURN(addArifmTreePlot(&result, -10, 10, -10, 10, "b", "order3"));
+//     // IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
+//
+//     // IF_MAIN_ARIFM_TREE_ERR_RETURN(addArifmTreePlot(&tree, -10, 10, -10, 10, "r", "original"));
+//     // drawAllPlots();
+//
+//     //IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
+//     // IF_MAIN_ARIFM_TREE_ERR_RETURN(getNthDerivativeOfTree(&tree, &result, 2));
+//     // IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
+//
+//     // LOG_ERROR("--------------------------------");
+//     // IF_MAIN_ARIFM_TREE_ERR_RETURN(simplifyTree(&diffTree));
+//     // IF_MAIN_ARIFM_TREE_ERR_RETURN(saveArifmTreeToFile(&diffTree, "bruh.tex"));
+//     // IF_MAIN_ARIFM_TREE_ERR_RETURN(openImageOfCurrentStateArifmTree(&diffTree));
+//
+//     IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&tree));
+//     //IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&diffTree));
+//     dumperDestructor(&dumper);
 
     return 0;
 }

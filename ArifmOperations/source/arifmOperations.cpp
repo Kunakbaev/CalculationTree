@@ -102,7 +102,7 @@ ArifmOperationsErrors getFunctionByName(const char* name, Function* func) {
     IF_ARG_NULL_RETURN(func);
 
     for (size_t funcInd = 0; funcInd < NUM_OF_FUNCS; ++funcInd) {
-        LOG_DEBUG_VARS(name, functionNames[funcInd]);
+        //LOG_DEBUG_VARS(name, functionNames[funcInd]);
         if (strcmp(name, functionNames[funcInd]) == 0) {
             *func = functions[funcInd];
             return ARIFM_OPERATIONS_STATUS_OK;

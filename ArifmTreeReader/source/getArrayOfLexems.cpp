@@ -74,9 +74,32 @@ static bool tryBracket(const char** ptr) {
     return true;
 }
 
-static bool tryReadFuncName() {
+void clearTmpString() {
+    size_t strLen = strlen(tmpString);
+    while (strLen > 0) {
+        tmpString[--strLen] = '\0';
+    }
+}
+
+static bool tryReadFuncName(const char* ptr) {
     assert(tmpString != NULL);
 
+    size_t strLen = strlen(tmpString);
+    if (strLen == 1 && isalpha(*(ptr - 1)) && !isalpha(*ptr)) { // this is variable
+        assert(arrInd < MAX_NUM_OF_LEXEMS);
+        array[arrInd++] = {
+            .nodeType = ARIFM_TREE_VAR_NODE,
+            {.data = (size_t)(*(ptr - 1) - 'a')}, // ASK: is this ok
+            .left = 0, .right = 0,
+            .memBuffIndex = 0,
+            .parent = 0,
+        };
+
+        clearTmpString();
+        return true;
+    }
+
+    // string is too long, so we asume
     // FIXME: add err check
     Function func = {};
     ArifmOperationsErrors error = getFunctionByName(tmpString, &func);
@@ -95,10 +118,7 @@ static bool tryReadFuncName() {
         .parent = 0,
     };
 
-    size_t strLen = strlen(tmpString);
-    while (strLen > 0) {
-        tmpString[--strLen] = '\0';
-    }
+    clearTmpString();
 
     return true;
 }
@@ -108,6 +128,7 @@ ReaderErrors getArrayOfLexems(const char* line, size_t* arrLen, Node** arr) {
     IF_ARG_NULL_RETURN(arrLen);
     IF_ARG_NULL_RETURN(arr);
 
+    arrInd = 0;
     tmpString = (char*)calloc(MAX_INPUT_LINE_LEN, sizeof(char));
     IF_NOT_COND_RETURN(tmpString != NULL,
                        READER_MEMORY_ALLOCATION_ERROR);
@@ -123,7 +144,7 @@ ReaderErrors getArrayOfLexems(const char* line, size_t* arrLen, Node** arr) {
         assert(tmpStringLen < MAX_INPUT_LINE_LEN);
         tmpString[tmpStringLen] = *ptr;
         ++ptr;
-        if (tryReadFuncName()) continue;
+        if (tryReadFuncName(ptr)) continue;
     }
 
     // for (size_t i = 0; i < arrInd; ++i) {
@@ -133,8 +154,8 @@ ReaderErrors getArrayOfLexems(const char* line, size_t* arrLen, Node** arr) {
     *arrLen = arrInd;
     *arr = (Node*)calloc(arrInd + 1, sizeof(Node));
     IF_NOT_COND_RETURN(*arr != NULL, READER_MEMORY_ALLOCATION_ERROR);
-    memcpy(*arr, array, sizeof(Node) * arrInd);
-    *arr[arrInd] =  { // terminal element, just like \0 is in string
+    memcpy(*arr, array, arrInd * sizeof(Node));
+    (*arr)[arrInd] =  { // terminal element, just like \0 is in string
         .nodeType = ARIFM_TREE_INVALID_NODE,
         {.data = 0},
         .left = 0, .right = 0,

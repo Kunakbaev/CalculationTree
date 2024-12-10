@@ -12,6 +12,7 @@ enum LEXEM_TYPES {
 };
 
 ReaderErrors readFromFile(ArifmTree* tree, const char* fileName);
+ReaderErrors constructArifmTreeFromTextLine(const char* line, ArifmTree* tree);
 ReaderErrors getArrayOfLexems(const char* line, size_t* arrLen, Node** arr);
 
 #endif
