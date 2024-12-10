@@ -39,6 +39,7 @@ REWRITE ALL THIS GARBAGE
 
 static ReaderErrors getAddSubSymbols(Parser* parser);
 static ReaderErrors getMultDivSymbols(Parser* parser);
+static ReaderErrors getFunctions(Parser* parser);
 static ReaderErrors getParenthesis(Parser* parser);
 static ReaderErrors getNumber(Parser* parser);
 static ReaderErrors getVariable(Parser* parser);
@@ -57,7 +58,8 @@ static ReaderErrors getGrammar(Parser* parser) {
     IF_ARG_NULL_RETURN(parser);
 
     IF_ERR_RETURN(getAddSubSymbols(parser));
-    openImageOfCurrentStateArifmTree(parser->tree);
+    dumpArifmTree(parser->tree);
+    //openImageOfCurrentStateArifmTree(parser->tree);
     LOG_DEBUG_VARS(parser->index, parser->arrLen);
     IF_NOT_COND_RETURN(parser->index == parser->arrLen,
                        READER_INVALID_ARGUMENT); // TODO: add error type
@@ -108,6 +110,16 @@ static bool isCurLexemVariable(Parser* parser) {
     return node.nodeType == ARIFM_TREE_VAR_NODE;
 }
 
+static bool isCurLexemComplexFunction(Parser* parser) {
+    assert(parser != NULL);
+    Node node = getCurrentLexem(parser);
+    // TODO: cringe
+    return node.nodeType == ARIFM_TREE_FUNC_NODE &&
+           !isCurLexemMulDivFunc(parser) &&
+           !isCurLexemOpeningBracket(parser) &&
+           !isCurLexemClosingBracket(parser) &&
+           !isCurLexemAddSubFunc(parser);
+}
 
 
 
@@ -145,7 +157,7 @@ static ReaderErrors getAddSubSymbols(Parser* parser) {
 static ReaderErrors getMultDivSymbols(Parser* parser) {
     IF_ARG_NULL_RETURN(parser);
 
-    IF_ERR_RETURN(getParenthesis(parser));
+    IF_ERR_RETURN(getFunctions(parser));
     LOG_DEBUG_VARS("--------------------", parser->index);
     while (parser->index < parser->arrLen && isCurLexemMulDivFunc(parser)) {
         Node node = getCurrentLexem(parser);
@@ -153,11 +165,32 @@ static ReaderErrors getMultDivSymbols(Parser* parser) {
         LOG_DEBUG_VARS("--------------------", parser->index);
 
         size_t leftOperand = parser->tree->root;
-        IF_ERR_RETURN(getParenthesis(parser));
+        IF_ERR_RETURN(getFunctions(parser));
         size_t rightOperand = parser->tree->root;
         LOG_ERROR("mult parser node func");
         parser->tree->root = NEW_FUNC_NODE(node.data, leftOperand, rightOperand);
     }
+
+    return READER_STATUS_OK;
+}
+
+static ReaderErrors getFunctions(Parser* parser) {
+    IF_ARG_NULL_RETURN(parser);
+
+    LOG_DEBUG_VARS("aaaaaaaaaaaaaaaaahhhhhhhhh");
+    if (!isCurLexemComplexFunction(parser)) {
+        IF_ERR_RETURN(getParenthesis(parser));
+        return READER_STATUS_OK;
+    }
+
+    LOG_ERROR("--------");
+    Node node = getCurrentLexem(parser);
+    LOG_ERROR("---------------------");
+    LOG_DEBUG_VARS(node.data, node.nodeType);
+    ++parser->index;
+    IF_ERR_RETURN(getParenthesis(parser));
+    parser->tree->root = NEW_FUNC_NODE(node.data, 0, parser->tree->root);
+    // TODO: binary funcs
 
     return READER_STATUS_OK;
 }

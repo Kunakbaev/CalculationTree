@@ -27,8 +27,8 @@ int main() {
     dumperConstructor(&dumper, 10, "logs", "png"); // referece_count: ctor +1
                                                    //                 dtor -1, if (0) -> free
 
-    const char* inputLine = "(((3 * 97 + x * 7) / 32) + (s + 19)) * 7";
-    //const char* inputLine = "(8 + 1) * 9";
+    //const char* inputLine = "(((3 * 97 + x * 7) / sin(10)) + (s + 19)) * 7";
+    const char* inputLine = "sin((20 + 4) / tan(3 * x)) * cos(35)";
     ArifmTree tree = {};
     constructArifmTree(&tree, &dumper);
     constructArifmTreeFromTextLine(inputLine, &tree);
