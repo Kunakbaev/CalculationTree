@@ -39,6 +39,7 @@ REWRITE ALL THIS GARBAGE
 
 static ReaderErrors getAddSubSymbols(Parser* parser);
 static ReaderErrors getMultDivSymbols(Parser* parser);
+static ReaderErrors getPowFuncParse(Parser* parser);
 static ReaderErrors getFunctions(Parser* parser);
 static ReaderErrors getParenthesis(Parser* parser);
 static ReaderErrors getNumber(Parser* parser);
@@ -110,12 +111,20 @@ static bool isCurLexemVariable(Parser* parser) {
     return node.nodeType == ARIFM_TREE_VAR_NODE;
 }
 
+static bool isCurLexemPowFunc(Parser* parser) {
+    assert(parser != NULL);
+    Node node = getCurrentLexem(parser);
+    return (node.nodeType == ARIFM_TREE_FUNC_NODE) &&
+           (node.data == ELEM_FUNC_POW);
+}
+
 static bool isCurLexemComplexFunction(Parser* parser) {
     assert(parser != NULL);
     Node node = getCurrentLexem(parser);
     // TODO: cringe
     return node.nodeType == ARIFM_TREE_FUNC_NODE &&
            !isCurLexemMulDivFunc(parser) &&
+           !isCurLexemPowFunc(parser) &&
            !isCurLexemOpeningBracket(parser) &&
            !isCurLexemClosingBracket(parser) &&
            !isCurLexemAddSubFunc(parser);
@@ -157,7 +166,7 @@ static ReaderErrors getAddSubSymbols(Parser* parser) {
 static ReaderErrors getMultDivSymbols(Parser* parser) {
     IF_ARG_NULL_RETURN(parser);
 
-    IF_ERR_RETURN(getFunctions(parser));
+    IF_ERR_RETURN(getPowFuncParse(parser));
     LOG_DEBUG_VARS("--------------------", parser->index);
     while (parser->index < parser->arrLen && isCurLexemMulDivFunc(parser)) {
         Node node = getCurrentLexem(parser);
@@ -165,11 +174,33 @@ static ReaderErrors getMultDivSymbols(Parser* parser) {
         LOG_DEBUG_VARS("--------------------", parser->index);
 
         size_t leftOperand = parser->tree->root;
-        IF_ERR_RETURN(getFunctions(parser));
+        IF_ERR_RETURN(getPowFuncParse(parser));
         size_t rightOperand = parser->tree->root;
         LOG_ERROR("mult parser node func");
         parser->tree->root = NEW_FUNC_NODE(node.data, leftOperand, rightOperand);
     }
+
+    return READER_STATUS_OK;
+}
+
+static ReaderErrors getPowFuncParse(Parser* parser) {
+    IF_ARG_NULL_RETURN(parser);
+
+    IF_ERR_RETURN(getFunctions(parser));
+    size_t leftOperand = parser->tree->root;
+
+    LOG_ERROR("----------");
+    if (parser->index >= parser->arrLen || !isCurLexemPowFunc(parser)) {
+        //IF_ERR_RETURN(getFunctions(parser));
+        return READER_STATUS_OK;
+    }
+
+    ++parser->index;
+    LOG_ERROR("----------");
+    IF_ERR_RETURN(getFunctions(parser));
+    size_t rightOperand = parser->tree->root;
+
+    parser->tree->root = NEW_POW_NODE(leftOperand, rightOperand);
 
     return READER_STATUS_OK;
 }

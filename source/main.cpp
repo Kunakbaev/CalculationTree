@@ -28,7 +28,8 @@ int main() {
                                                    //                 dtor -1, if (0) -> free
 
     //const char* inputLine = "(((3 * 97 + x * 7) / sin(10)) + (s + 19)) * 7";
-    const char* inputLine = "sin((20 + 4) / tan(3 * x)) * cos(35)";
+    //const char* inputLine = "sin((20 + 4) / tan(3 * x)) * cos(35)";
+    const char* inputLine = "cos((x + 5) ^ 10) ^ 3 + (3 + 10)";
     ArifmTree tree = {};
     constructArifmTree(&tree, &dumper);
     constructArifmTreeFromTextLine(inputLine, &tree);
