@@ -3,6 +3,7 @@
 #include "../Dumper/include/dumper.hpp"
 #include "../ArifmeticTree/include/arifmTree.hpp"
 #include "../ArifmOperations/include/arifmOperations.hpp"
+#include "../ArifmTreeReader/include/reader.hpp"
 #include "logLib.hpp"
 
 #define IF_MAIN_ARIFM_TREE_ERR_RETURN(error)                                   \
@@ -25,6 +26,17 @@ int main() {
     Dumper dumper = {};
     dumperConstructor(&dumper, 10, "logs", "png"); // referece_count: ctor +1
                                                    //                 dtor -1, if (0) -> free
+
+    const char* inputLine = "(598 + 79) * (103 - 98)";
+    Node* array = NULL;
+    size_t arrLen = 0;
+    getArrayOfLexems(inputLine, &arrLen, &array);
+
+    for (size_t i = 0; i < arrLen; ++i) {
+        LOG_DEBUG_VARS(i, array[i].nodeType, array[i].data, array[i].doubleData);
+    }
+
+    exit(0);
 
     ArifmTree tree = {};
     IF_MAIN_ARIFM_TREE_ERR_RETURN(constructArifmTree(&tree, &dumper));
@@ -61,7 +73,8 @@ int main() {
     IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
     IF_MAIN_ARIFM_TREE_ERR_RETURN(getNthDerivativeOfTree(&tree, &result, 3));
     addTreeLatexRepresenationToFile(&result, "bruh.tex");
-    //IF_MAIN_ARIFM_TREE_ERR_RETURN(addArifmTreePlot(&result, -10, 10, -10, 10, "g", "order9"));
+    IF_MAIN_ARIFM_TREE_ERR_RETURN(addArifmTreePlot(&result, -10, 10, -10, 10, "g", "order9"));
+    drawAllPlots();
     IF_MAIN_ARIFM_TREE_ERR_RETURN(destructArifmTree(&result));
 
     // IF_MAIN_ARIFM_TREE_ERR_RETURN(getTaylorSeriesOfTree(&tree, &result, 3, getVariableIndex('x'), 0));

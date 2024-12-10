@@ -54,7 +54,7 @@ for plot in plots:
 plt.legend()
 
 ax.set(xlabel='x', ylabel='y',
-       title='кто прочитал тот гей')
+       title='biba boba buba baba')
 ax.grid()
 
 fig.savefig("pythonScripts/plot.png")

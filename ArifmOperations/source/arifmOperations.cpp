@@ -97,7 +97,7 @@ static const char* getFuncType(const Function* function) {
     }
 }
 
-static ArifmOperationsErrors getFunctionByName(const char* name, Function* func) {
+ArifmOperationsErrors getFunctionByName(const char* name, Function* func) {
     IF_ARG_NULL_RETURN(name);
     IF_ARG_NULL_RETURN(func);
 
